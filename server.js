@@ -52,6 +52,29 @@ app.post('/api/mom/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Translation Proxy ────────────────────────────────────
+// Uses MyMemory free API — no key required (up to 5000 words/day)
+app.post('/api/translate', async (req, res) => {
+  const { text, from } = req.body;
+  if (!text || !text.trim()) return res.json({ translated: '' });
+
+  try {
+    const sourceLang = from || 'te';
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.trim())}&langpair=${sourceLang}|en`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.responseStatus === 200 && data.responseData?.translatedText) {
+      return res.json({ translated: data.responseData.translatedText });
+    }
+    // fallback: return original
+    res.json({ translated: text, error: 'Translation service returned no result' });
+  } catch (e) {
+    console.error('Translation error:', e.message);
+    res.json({ translated: text, error: e.message });
+  }
+});
+
 // ── Pages ─────────────────────────────────────────────────
 
 // Serve MOM Recorder at root /
