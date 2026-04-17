@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: voice-mom-generator
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MOM_USERNAME
+        value: admin
+      - key: MOM_PASSWORD
+        value: "Vamsi @2004"
