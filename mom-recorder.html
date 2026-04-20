@@ -392,6 +392,25 @@ body {
 .lang-mode-btn.active-te { background:rgba(255,165,0,0.18); color:var(--te); border-color:rgba(255,165,0,0.5); }
 .lang-mode-btn.active-en { background:rgba(58,123,213,0.18); color:#7ab8ff; border-color:rgba(58,123,213,0.5); }
 
+/* ENGINE ROW — pending switch indicator */
+.eng-switch-hint {
+  font-size:0.68rem; color:var(--t3); font-style:italic;
+  margin-left:4px; opacity:0; transition:opacity 0.3s;
+}
+.eng-switch-hint.visible { opacity:1; }
+
+/* Manual force-switch button */
+.force-lang-btn {
+  margin-left:auto; padding:3px 10px;
+  border-radius:7px; border:1px solid var(--card-border);
+  background:var(--input-bg); color:var(--t2);
+  font-size:0.7rem; font-weight:700; cursor:pointer;
+  transition:all var(--transition); white-space:nowrap;
+  opacity:0.4; pointer-events:none;
+}
+.force-lang-btn.active { opacity:1; pointer-events:all; }
+.force-lang-btn:hover  { background:var(--card-hover); border-color:var(--accent); color:var(--accent); }
+
 /* ══════════════════════════════════════════
    RIGHT PANEL — TRANSCRIPT
 ══════════════════════════════════════════ */
@@ -861,6 +880,8 @@ body {
           <div class="engine-row" id="engineRow" style="margin:10px 0 14px;">
             <div class="eng-dot"></div>
             <span class="eng-label" id="engineLabel">Engine: Idle</span>
+            <span class="eng-switch-hint" id="engSwitchHint"></span>
+            <button class="force-lang-btn" id="forceLangBtn" onclick="forceSwitchEngine()" title="Manually switch language engine">🔄 Switch</button>
           </div>
 
           <!-- Controls -->
@@ -1208,6 +1229,8 @@ let generatedMOM       = '';
 let currentEngineLang  = 'te-IN';
 let startLangPref      = 'te-IN';
 let langStreakCount     = 0;
+let lastSwitchTime     = 0;       // ms timestamp of last engine switch
+const SWITCH_COOLDOWN  = 3000;    // wait 3s before allowing another switch
 let currentSpeakerIdx  = 0;
 let autoSaveTimer      = null;
 
@@ -1503,21 +1526,42 @@ function stopMicMeter() {
 // ══════════════════════════════════════════
 // 10. ENGINE (SpeechRecognition)
 // ══════════════════════════════════════════
-function updateEngineUI() {
+function updateEngineUI(detectedLang) {
   const row = document.getElementById('engineRow');
   const lbl = document.getElementById('engineLabel');
+  const btn = document.getElementById('forceLangBtn');
+
   if (!isRecording) {
     row.className = 'engine-row';
     lbl.textContent = 'Engine: Idle';
-  } else if (isPaused) {
+    if (btn) { btn.classList.remove('active'); btn.textContent = '🔄 Switch'; }
+    return;
+  }
+  if (isPaused) {
     row.className = 'engine-row';
     lbl.textContent = '⏸ Paused';
-  } else if (currentEngineLang === 'te-IN') {
+    if (btn) btn.classList.remove('active');
+    return;
+  }
+
+  // Show which engine is active
+  if (currentEngineLang === 'te-IN') {
     row.className = 'engine-row eng-te';
-    lbl.textContent = '🟠 Listening: Telugu';
+    // If we just detected English but engine hasn't switched yet, hint it
+    if (detectedLang === 'EN') {
+      lbl.textContent = '🟠 TE mode | heard: 🔵 English';
+    } else {
+      lbl.textContent = '🟠 Listening: Telugu / English';
+    }
+    if (btn) { btn.classList.add('active'); btn.textContent = '🔄 → English'; }
   } else {
     row.className = 'engine-row eng-en';
-    lbl.textContent = '🔵 Listening: English';
+    if (detectedLang === 'TE' || detectedLang === 'MIX') {
+      lbl.textContent = '🔵 EN mode | heard: 🟠 Telugu';
+    } else {
+      lbl.textContent = '🔵 Listening: English / Telugu';
+    }
+    if (btn) { btn.classList.add('active'); btn.textContent = '🔄 → Telugu'; }
   }
 }
 
@@ -1599,6 +1643,7 @@ function createAndStartEngine() {
       });
 
       updateDetectedLangUI(lang);
+      updateEngineUI(lang);   // show real-time detected lang in engine row
       interimText = '';
       autoSwitchEngine(lang);
       renderTranscript(); autoSave();
@@ -1650,19 +1695,64 @@ function createAndStartEngine() {
 }
 
 function autoSwitchEngine(lang) {
+  const now = Date.now();
+
+  // Still in cooldown after last switch — don't switch yet
+  if (now - lastSwitchTime < SWITCH_COOLDOWN) {
+    langStreakCount = 0;
+    return;
+  }
+
   let desired = currentEngineLang;
+
+  // te-IN heard English → want to switch to en-IN (streak = 1, fast)
   if (currentEngineLang === 'te-IN' && lang === 'EN') desired = 'en-IN';
+
+  // en-IN heard Telugu/Mixed → want to switch to te-IN (streak = 2, careful)
   if (currentEngineLang === 'en-IN' && (lang === 'TE' || lang === 'MIX')) desired = 'te-IN';
+
   if (desired !== currentEngineLang) {
     langStreakCount++;
-    if (langStreakCount >= 2) {
+
+    // TE→EN: switch on 1st detection (fast response)
+    // EN→TE: switch on 2nd detection (avoid false trigger from Indian-accent English)
+    const needed = (currentEngineLang === 'te-IN' && lang === 'EN') ? 1 : 2;
+
+    // Show "switching soon" hint when streak = 1
+    const hint = document.getElementById('engSwitchHint');
+    if (langStreakCount === 1 && needed === 2) {
+      hint.textContent = '(switching soon…)';
+      hint.classList.add('visible');
+    }
+
+    if (langStreakCount >= needed) {
       langStreakCount = 0;
+      lastSwitchTime = now;
       currentEngineLang = desired;
+      if (hint) { hint.textContent = ''; hint.classList.remove('visible'); }
       if (isRecording && !isPaused && recognition) {
-        try { recognition.stop(); } catch(e) {} // stop() finalizes pending speech
+        try { recognition.stop(); } catch(e) {}
       }
     }
-  } else { langStreakCount = 0; }
+  } else {
+    langStreakCount = 0;
+    const hint = document.getElementById('engSwitchHint');
+    if (hint) { hint.textContent = ''; hint.classList.remove('visible'); }
+  }
+}
+
+// Manual force-switch — user clicks "🔄 Switch" button
+function forceSwitchEngine() {
+  if (!isRecording || isPaused) return;
+  langStreakCount = 0;
+  lastSwitchTime  = Date.now();
+  currentEngineLang = currentEngineLang === 'te-IN' ? 'en-IN' : 'te-IN';
+  const hint = document.getElementById('engSwitchHint');
+  if (hint) { hint.textContent = ''; hint.classList.remove('visible'); }
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+  }
+  updateEngineUI();
 }
 
 function updateDetectedLangUI(lang) {
@@ -1693,6 +1783,7 @@ async function startRecording() {
   isRecording = true; isPaused = false;
   currentEngineLang = startLangPref;
   langStreakCount = 0;
+  lastSwitchTime  = 0;
 
   await startMicMeter();
   createAndStartEngine();
