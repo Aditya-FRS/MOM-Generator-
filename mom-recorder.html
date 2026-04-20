@@ -1,903 +1,2300 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice MOM Generator — Telugu + English with Translation</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice MOM — Telugu + English</title>
+<style>
+/* ══════════════════════════════════════════
+   CSS VARIABLES  (dark / light themes)
+══════════════════════════════════════════ */
+:root {
+  --bg:          linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  --card:        rgba(255,255,255,0.07);
+  --card-border: rgba(255,255,255,0.10);
+  --card-hover:  rgba(255,255,255,0.11);
+  --input-bg:    rgba(0,0,0,0.30);
+  --t1: #e0e0e0;
+  --t2: #999;
+  --t3: #555;
+  --accent:  #3a7bd5;
+  --accent2: #00d2ff;
+  --te:    #ffb74d;
+  --green: #00cec9;
+  --red:   #ff4757;
+  --action-glow: rgba(249,202,36,0.18);
+  --action-border: rgba(249,202,36,0.45);
+  --decision-glow: rgba(108,92,231,0.18);
+  --decision-border: rgba(108,92,231,0.45);
+  --bub-en-bg:  rgba(58,123,213,0.13);
+  --bub-en-bd:  rgba(58,123,213,0.22);
+  --bub-te-bg:  rgba(255,165,0,0.13);
+  --bub-te-bd:  rgba(255,165,0,0.22);
+  --shadow: 0 8px 32px rgba(0,0,0,0.35);
+  --radius: 14px;
+  --transition: 0.2s ease;
+}
+[data-theme="light"] {
+  --bg:          linear-gradient(135deg,#e8edf8,#dce4f5,#e8edf8);
+  --card:        rgba(255,255,255,0.92);
+  --card-border: rgba(0,0,0,0.09);
+  --card-hover:  #fff;
+  --input-bg:    rgba(0,0,0,0.04);
+  --t1: #1a1a2e;
+  --t2: #555;
+  --t3: #888;
+  --bub-en-bg:  rgba(58,123,213,0.07);
+  --bub-en-bd:  rgba(58,123,213,0.18);
+  --bub-te-bg:  rgba(255,165,0,0.07);
+  --bub-te-bd:  rgba(255,165,0,0.18);
+  --shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            min-height: 100vh;
-            color: #e0e0e0;
-        }
+/* ══════════════════════════════════════════
+   RESET + BASE
+══════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background: var(--bg);
+  min-height:100vh;
+  color: var(--t1);
+  transition: background var(--transition), color var(--transition);
+}
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(128,128,128,0.3); border-radius:3px; }
 
-        /* ── LOGIN ─────────────────────────────────────── */
-        .login-page {
-            display: flex; align-items: center; justify-content: center;
-            min-height: 100vh; padding: 20px;
-        }
-        .login-card {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 40px 36px;
-            width: 100%; max-width: 400px;
-            backdrop-filter: blur(10px);
-        }
-        .login-card .logo { text-align: center; margin-bottom: 8px; }
-        .login-card .logo svg { width: 56px; height: 56px; }
-        .login-card h2 {
-            text-align: center; font-size: 1.5rem; margin-bottom: 4px;
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .login-subtitle { text-align: center; color: #777; font-size: 0.85rem; margin-bottom: 28px; }
-        .login-field { margin-bottom: 18px; }
-        .login-field label { display: block; font-size: 0.8rem; color: #999; margin-bottom: 6px; font-weight: 500; }
-        .login-field input {
-            width: 100%; padding: 12px 14px;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 10px; color: #e0e0e0; font-size: 0.95rem;
-            outline: none; transition: border-color 0.2s;
-        }
-        .login-field input:focus { border-color: #3a7bd5; }
-        .login-field input::placeholder { color: #555; }
-        .login-btn {
-            width: 100%; padding: 13px; border: none; border-radius: 10px;
-            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
-            color: #fff; font-size: 1rem; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; margin-top: 6px;
-        }
-        .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(58,123,213,0.3); }
-        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-        .login-error { color: #ff4757; font-size: 0.82rem; text-align: center; margin-top: 14px; min-height: 20px; }
-        .show-pw { display: flex; align-items: center; gap: 6px; margin-top: 8px; cursor: pointer; font-size: 0.78rem; color: #777; user-select: none; }
-        .show-pw input { width: auto; cursor: pointer; accent-color: #3a7bd5; }
+/* ══════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════ */
+.login-page {
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:20px;
+}
+.login-card {
+  background: var(--card);
+  border:1px solid var(--card-border);
+  border-radius:18px; padding:44px 38px;
+  width:100%; max-width:400px;
+  backdrop-filter:blur(14px);
+  box-shadow: var(--shadow);
+}
+.login-logo { text-align:center; margin-bottom:10px; }
+.login-logo svg { width:60px; height:60px; }
+.login-card h2 {
+  text-align:center; font-size:1.55rem; margin-bottom:4px;
+  background:linear-gradient(90deg,#00d2ff,#3a7bd5);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.login-sub { text-align:center; color:var(--t2); font-size:0.83rem; margin-bottom:28px; }
+.lf { margin-bottom:18px; }
+.lf label { display:block; font-size:0.78rem; color:var(--t2); margin-bottom:5px; font-weight:600; letter-spacing:.4px; }
+.lf input {
+  width:100%; padding:12px 14px;
+  background:var(--input-bg);
+  border:1px solid var(--card-border);
+  border-radius:10px; color:var(--t1);
+  font-size:0.94rem; outline:none;
+  transition:border-color var(--transition);
+}
+.lf input:focus { border-color:var(--accent); }
+.lf input::placeholder { color:var(--t3); }
+.login-btn {
+  width:100%; padding:13px; border:none; border-radius:10px;
+  background:linear-gradient(135deg,#3a7bd5,#00d2ff);
+  color:#fff; font-size:1rem; font-weight:700;
+  cursor:pointer; transition:all var(--transition); margin-top:6px;
+}
+.login-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(58,123,213,0.35); }
+.login-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.show-pw { display:flex; align-items:center; gap:6px; margin-top:8px; cursor:pointer; font-size:0.76rem; color:var(--t2); user-select:none; }
+.show-pw input { width:auto; cursor:pointer; accent-color:var(--accent); }
+.login-err { color:var(--red); font-size:0.82rem; text-align:center; margin-top:14px; min-height:18px; }
 
-        /* ── MAIN APP ──────────────────────────────────── */
-        .app-page { display: none; }
-        .container { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
+/* ══════════════════════════════════════════
+   APP PAGE
+══════════════════════════════════════════ */
+.app-page { display:none; }
+.app-container { max-width:1280px; margin:0 auto; padding:18px 16px 40px; }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-badge { font-size: 0.8rem; color: #999; padding: 4px 12px; background: rgba(255,255,255,0.06); border-radius: 8px; }
-        .logout-btn { padding: 6px 14px; border: 1px solid rgba(255,71,87,0.3); background: rgba(255,71,87,0.1); color: #ff6b81; border-radius: 8px; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; }
-        .logout-btn:hover { background: rgba(255,71,87,0.2); }
+/* TOP HEADER BAR */
+.app-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px; gap:12px; flex-wrap:wrap;
+}
+.app-title-wrap { display:flex; flex-direction:column; }
+.app-title {
+  font-size:1.65rem; font-weight:800;
+  background:linear-gradient(90deg,#00d2ff,#3a7bd5);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  line-height:1.1;
+}
+.app-sub { font-size:0.8rem; color:var(--t2); margin-top:2px; }
 
-        h1 { text-align: center; font-size: 1.8rem; margin-bottom: 6px; background: linear-gradient(90deg, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .subtitle { text-align: center; color: #888; margin-bottom: 8px; font-size: 0.95rem; }
-        .feature-badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-        .badge {
-            padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .badge-te { background: rgba(255,165,0,0.15); color: #ffb74d; border-color: rgba(255,165,0,0.3); }
-        .badge-en { background: rgba(58,123,213,0.15); color: #7ab8ff; border-color: rgba(58,123,213,0.3); }
-        .badge-tr { background: rgba(0,206,201,0.15); color: #00cec9; border-color: rgba(0,206,201,0.3); }
+.header-actions { display:flex; align-items:center; gap:8px; }
 
-        /* Meeting Info */
-        .meeting-info { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08); }
-        .meeting-info h3 { margin-bottom: 14px; color: #3a7bd5; font-size: 1rem; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .info-grid label { display: block; font-size: 0.8rem; color: #999; margin-bottom: 4px; }
-        .info-grid input, .info-grid textarea {
-            width: 100%; padding: 10px 12px;
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 8px; color: #e0e0e0; font-size: 0.9rem;
-            outline: none; transition: border-color 0.2s;
-        }
-        .info-grid input:focus, .info-grid textarea:focus { border-color: #3a7bd5; }
-        .full-width { grid-column: 1 / -1; }
-        .info-grid textarea { resize: vertical; min-height: 50px; }
+.icon-btn {
+  width:36px; height:36px; border-radius:10px;
+  border:1px solid var(--card-border);
+  background:var(--card); color:var(--t1);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:1rem; transition:all var(--transition);
+}
+.icon-btn:hover { background:var(--card-hover); transform:translateY(-1px); }
 
-        /* Language mode selector */
-        .lang-mode-bar {
-            display: flex; align-items: center; justify-content: center;
-            gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
-        }
-        .lang-mode-bar span { font-size: 0.8rem; color: #777; }
-        .lang-btn {
-            padding: 7px 18px; border-radius: 20px; border: 2px solid transparent;
-            font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-            background: rgba(255,255,255,0.06); color: #888;
-        }
-        .lang-btn.active-te { background: rgba(255,165,0,0.2); color: #ffb74d; border-color: rgba(255,165,0,0.5); }
-        .lang-btn.active-en { background: rgba(58,123,213,0.2); color: #7ab8ff; border-color: rgba(58,123,213,0.5); }
-        .lang-btn.active-auto { background: rgba(0,206,201,0.2); color: #00cec9; border-color: rgba(0,206,201,0.5); }
+.user-pill {
+  display:flex; align-items:center; gap:8px;
+  background:var(--card); border:1px solid var(--card-border);
+  border-radius:20px; padding:5px 14px 5px 8px;
+}
+.user-avatar {
+  width:26px; height:26px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.72rem; font-weight:700; color:#fff;
+}
+.user-name { font-size:0.8rem; color:var(--t2); }
+.logout-btn {
+  padding:5px 12px; border:1px solid rgba(255,71,87,0.3);
+  background:rgba(255,71,87,0.1); color:#ff6b81;
+  border-radius:8px; font-size:0.76rem; cursor:pointer; transition:all var(--transition);
+}
+.logout-btn:hover { background:rgba(255,71,87,0.22); }
 
-        /* Engine status */
-        .engine-status { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; }
-        .engine-indicator {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 0.78rem; color: #666; padding: 4px 12px;
-            border-radius: 8px; background: rgba(255,255,255,0.04); transition: all 0.3s;
-        }
-        .dot-indicator { width: 8px; height: 8px; border-radius: 50%; background: #444; transition: all 0.3s; }
-        .engine-indicator.active-en .dot-indicator { background: #3a7bd5; box-shadow: 0 0 6px rgba(58,123,213,0.6); animation: blink 1s infinite; }
-        .engine-indicator.active-te .dot-indicator { background: #ff9f43; box-shadow: 0 0 6px rgba(255,159,67,0.6); animation: blink 1s infinite; }
+/* BANNERS */
+.banner {
+  display:none; border-radius:10px; padding:12px 18px;
+  margin-bottom:14px; text-align:center; font-size:0.84rem; line-height:1.5;
+}
+.banner.visible { display:block; }
+.banner-err  { background:rgba(255,71,87,0.15); border:1px solid rgba(255,71,87,0.3); color:#ff6b81; }
+.banner-info { background:rgba(0,206,201,0.12); border:1px solid rgba(0,206,201,0.3); color:var(--green); }
+.unsupported { text-align:center; padding:40px; color:var(--red); font-size:1.1rem; display:none; }
 
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* FEATURE BADGES */
+.badges { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:18px; }
+.badge {
+  padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700;
+  border:1px solid var(--card-border);
+}
+.b-te  { background:rgba(255,165,0,0.12); color:var(--te); border-color:rgba(255,165,0,0.3); }
+.b-en  { background:rgba(58,123,213,0.12); color:#7ab8ff; border-color:rgba(58,123,213,0.3); }
+.b-tr  { background:rgba(0,206,201,0.12); color:var(--green); border-color:rgba(0,206,201,0.3); }
+.b-auto { background:rgba(108,92,231,0.12); color:#a29bfe; border-color:rgba(108,92,231,0.3); }
 
-        /* Controls */
-        .controls { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        .record-btn {
-            width: 72px; height: 72px; border-radius: 50%;
-            border: 3px solid #ff4757; background: rgba(255,71,87,0.15);
-            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;
-        }
-        .record-btn:hover { transform: scale(1.05); }
-        .record-btn .dot { width: 26px; height: 26px; background: #ff4757; border-radius: 50%; transition: all 0.3s; }
-        .record-btn.recording .dot { width: 20px; height: 20px; border-radius: 4px; animation: pulse 1.2s infinite; }
-        .record-btn.recording { border-color: #ff6b81; box-shadow: 0 0 25px rgba(255,71,87,0.4); }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+/* ══════════════════════════════════════════
+   SPLIT LAYOUT
+══════════════════════════════════════════ */
+.split-layout {
+  display:grid;
+  grid-template-columns: 320px 1fr;
+  gap:16px;
+  align-items:start;
+  margin-bottom:16px;
+}
+@media(max-width:900px) { .split-layout { grid-template-columns:1fr; } }
 
-        .status-area { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-        .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; min-width: 110px; text-align: center; }
-        .status-badge.idle { background: rgba(255,255,255,0.08); color: #888; }
-        .status-badge.recording { background: rgba(255,71,87,0.2); color: #ff4757; }
-        .status-badge.stopped { background: rgba(255,165,0,0.2); color: orange; }
-        .detected-lang { font-size: 0.72rem; color: #666; min-height: 16px; }
-        .detected-lang .en-lbl { color: #7ab8ff; font-weight: 600; }
-        .detected-lang .te-lbl { color: #ffb74d; font-weight: 600; }
-        .timer { font-family: 'Courier New', monospace; font-size: 1.3rem; color: #3a7bd5; min-width: 80px; text-align: center; }
+/* ── LEFT PANEL ── */
+.left-panel { display:flex; flex-direction:column; gap:14px; }
 
-        /* Banner */
-        .mic-banner {
-            display: none; background: rgba(255,71,87,0.15);
-            border: 1px solid rgba(255,71,87,0.3); border-radius: 10px;
-            padding: 14px 20px; margin-bottom: 16px; text-align: center;
-            color: #ff6b81; font-size: 0.85rem; line-height: 1.5;
-        }
-        .mic-banner.visible { display: block; }
+/* ── RIGHT PANEL ── */
+.right-panel { display:flex; flex-direction:column; gap:14px; min-width:0; }
 
-        /* Transcript */
-        .transcript-section { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08); }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-header h3 { color: #3a7bd5; font-size: 1rem; }
+/* CARD */
+.card {
+  background:var(--card); border:1px solid var(--card-border);
+  border-radius:var(--radius); padding:18px;
+  box-shadow: var(--shadow);
+  transition:background var(--transition);
+}
 
-        .transcript-box {
-            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px;
-            min-height: 200px; max-height: 420px; overflow-y: auto;
-            font-size: 0.9rem; line-height: 1; /* we control line height per segment */
-            border: 1px solid rgba(255,255,255,0.06);
-        }
+/* COLLAPSIBLE MEETING INFO */
+.card-header {
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; user-select:none;
+}
+.card-header h3 { font-size:0.92rem; color:var(--accent); font-weight:700; display:flex; align-items:center; gap:7px; }
+.collapse-btn {
+  width:24px; height:24px; border-radius:6px;
+  border:1px solid var(--card-border); background:var(--input-bg);
+  color:var(--t2); display:flex; align-items:center; justify-content:center;
+  font-size:0.8rem; cursor:pointer; transition:transform var(--transition);
+}
+.collapse-btn.open { transform:rotate(180deg); }
+.card-body { margin-top:14px; }
+.card-body.hidden { display:none; }
 
-        /* Each spoken segment */
-        .seg {
-            display: flex; flex-direction: column;
-            padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .seg:last-child { border-bottom: none; }
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.info-field label { display:block; font-size:0.75rem; color:var(--t2); margin-bottom:4px; font-weight:600; }
+.info-field input, .info-field textarea, .info-field select {
+  width:100%; padding:9px 11px;
+  background:var(--input-bg); border:1px solid var(--card-border);
+  border-radius:8px; color:var(--t1); font-size:0.87rem;
+  outline:none; transition:border-color var(--transition); font-family:inherit;
+}
+.info-field input:focus, .info-field textarea:focus { border-color:var(--accent); }
+.info-field input::placeholder, .info-field textarea::placeholder { color:var(--t3); }
+.span2 { grid-column:1/-1; }
+.info-field textarea { resize:vertical; min-height:48px; }
 
-        .seg-top { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-        .seg-original { font-size: 0.92rem; color: #e0e0e0; line-height: 1.5; }
-        .seg-translation {
-            margin-top: 3px; margin-left: 4px;
-            font-size: 0.85rem; color: #00cec9; line-height: 1.5;
-        }
-        .seg-translation::before { content: '→ '; color: #555; }
-        .seg-translating { color: #555; font-style: italic; font-size: 0.8rem; margin-top: 3px; margin-left: 4px; }
+/* TEMPLATE BAR */
+.template-bar { display:flex; gap:7px; flex-wrap:wrap; }
+.tpl-btn {
+  padding:5px 12px; border-radius:8px; border:1px solid var(--card-border);
+  background:var(--input-bg); color:var(--t2); font-size:0.75rem; font-weight:600;
+  cursor:pointer; transition:all var(--transition);
+}
+.tpl-btn:hover { background:rgba(58,123,213,0.2); color:#7ab8ff; border-color:rgba(58,123,213,0.4); }
 
-        .lang-tag {
-            display: inline-block; font-size: 0.65rem; padding: 1px 7px;
-            border-radius: 4px; font-weight: 700; flex-shrink: 0;
-        }
-        .lang-tag.en  { background: rgba(58,123,213,0.35); color: #7ab8ff; }
-        .lang-tag.te  { background: rgba(255,165,0,0.35); color: #ffb74d; }
-        .lang-tag.mix { background: rgba(0,206,201,0.35); color: #00cec9; }
+/* WAVEFORM */
+.waveform-wrap {
+  background:var(--input-bg); border-radius:10px; padding:10px 12px;
+  display:flex; align-items:center; justify-content:center; gap:3px;
+  height:58px; overflow:hidden;
+}
+.wf-bar {
+  width:4px; min-height:3px; max-height:46px; height:4px;
+  border-radius:3px;
+  background:linear-gradient(to top,var(--accent),var(--accent2));
+  transition:height 0.07s ease;
+  opacity:0.5;
+}
+.waveform-wrap.recording .wf-bar { opacity:1; }
+.waveform-wrap.idle .wf-bar { animation:waveIdle 1.6s ease-in-out infinite; }
+@keyframes waveIdle {
+  0%,100% { height:3px; }
+  50%      { height:18px; }
+}
 
-        .ts-tag { font-size: 0.68rem; color: #555; flex-shrink: 0; }
+/* ENGINE STATUS */
+.engine-row { display:flex; align-items:center; justify-content:center; gap:6px; }
+.eng-dot { width:9px; height:9px; border-radius:50%; background:#444; transition:all 0.3s; }
+.eng-te  .eng-dot { background:var(--te); box-shadow:0 0 8px rgba(255,165,0,0.7); animation:blink 1s infinite; }
+.eng-en  .eng-dot { background:var(--accent); box-shadow:0 0 8px rgba(58,123,213,0.7); animation:blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+.eng-label { font-size:0.78rem; color:var(--t2); }
 
-        .interim-line { color: #555; font-style: italic; padding: 6px 0; font-size: 0.9rem; }
+/* CONTROLS */
+.controls {
+  display:flex; align-items:center; justify-content:center;
+  gap:20px; flex-wrap:wrap;
+}
+.rec-btn {
+  width:68px; height:68px; border-radius:50%;
+  border:3px solid var(--red);
+  background:rgba(255,71,87,0.14);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.3s; flex-shrink:0;
+}
+.rec-btn:hover { transform:scale(1.07); }
+.rec-btn .dot { width:24px; height:24px; background:var(--red); border-radius:50%; transition:all 0.3s; }
+.rec-btn.recording .dot { width:18px; height:18px; border-radius:4px; animation:pulseDot 1.2s infinite; }
+.rec-btn.recording { border-color:#ff6b81; box-shadow:0 0 28px rgba(255,71,87,0.45); }
+@keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-        .word-count { font-size: 0.75rem; color: #666; }
-        .btn-edit { background: rgba(255,255,255,0.08); color: #ccc; border: 1px solid rgba(255,255,255,0.12); padding: 4px 12px; font-size: 0.78rem; border-radius: 6px; cursor: pointer; }
-        .btn-edit:hover { background: rgba(255,255,255,0.14); }
+.pause-btn {
+  width:44px; height:44px; border-radius:50%;
+  border:2px solid rgba(249,202,36,0.5);
+  background:rgba(249,202,36,0.1); color:#f9ca24;
+  cursor:pointer; font-size:1.1rem;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s; opacity:0.4; pointer-events:none;
+}
+.pause-btn.active { opacity:1; pointer-events:all; }
+.pause-btn:hover { background:rgba(249,202,36,0.2); }
 
-        /* Buttons */
-        .action-buttons { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-        .btn { padding: 12px 28px; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-generate { background: linear-gradient(135deg, #00b894, #00cec9); color: #fff; }
-        .btn-generate:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,206,201,0.3); }
-        .btn-clear { background: rgba(255,255,255,0.08); color: #ccc; border: 1px solid rgba(255,255,255,0.12); }
-        .btn-clear:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
-        .btn-copy { background: rgba(58,123,213,0.2); color: #7ab8ff; border: 1px solid rgba(58,123,213,0.3); }
-        .btn-copy:hover:not(:disabled) { background: rgba(58,123,213,0.3); }
-        .btn-download { background: rgba(255,165,0,0.2); color: #ffb74d; border: 1px solid rgba(255,165,0,0.3); }
-        .btn-download:hover:not(:disabled) { background: rgba(255,165,0,0.3); }
+.status-col { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.status-badge {
+  padding:5px 13px; border-radius:20px;
+  font-size:0.78rem; font-weight:700; min-width:100px; text-align:center;
+}
+.sb-idle     { background:rgba(255,255,255,0.08); color:var(--t2); }
+.sb-recording { background:rgba(255,71,87,0.2); color:var(--red); }
+.sb-paused   { background:rgba(249,202,36,0.2); color:#f9ca24; }
+.sb-stopped  { background:rgba(255,165,0,0.2); color:var(--te); }
 
-        /* MOM Output */
-        .mom-section { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(0,206,201,0.2); display: none; }
-        .mom-section.visible { display: block; }
-        .mom-section h3 { color: #00cec9; margin-bottom: 14px; font-size: 1rem; }
-        .mom-output { background: rgba(0,0,0,0.35); border-radius: 8px; padding: 20px; font-size: 0.9rem; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word; max-height: 560px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.06); }
-        .loading-overlay { display: none; text-align: center; padding: 30px; color: #00cec9; }
-        .loading-overlay.visible { display: block; }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(0,206,201,0.2); border-top-color: #00cec9; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+.det-lang { font-size:0.7rem; color:var(--t3); min-height:15px; }
+.te-lbl { color:var(--te); font-weight:700; }
+.en-lbl { color:#7ab8ff; font-weight:700; }
+.timer { font-family:'Courier New',monospace; font-size:1.25rem; color:var(--accent); min-width:68px; text-align:center; }
 
-        .unsupported-msg { text-align: center; padding: 40px; color: #ff4757; font-size: 1.1rem; display: none; }
+/* MIC LEVEL */
+.mic-wrap { display:flex; flex-direction:column; gap:4px; }
+.mic-lbl { font-size:0.72rem; color:var(--t3); display:flex; justify-content:space-between; }
+.mic-track { height:7px; background:var(--input-bg); border-radius:4px; overflow:hidden; }
+.mic-fill  { height:100%; width:0%; border-radius:4px; background:linear-gradient(90deg,#00b894,var(--green)); transition:width 0.06s linear; }
+.mic-tip   { font-size:0.68rem; color:var(--t3); text-align:center; }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+/* MIC SENSITIVITY SLIDER */
+.sens-row {
+  display:flex; align-items:center; gap:8px; margin-top:10px;
+  padding-top:10px; border-top:1px solid var(--card-border);
+}
+.sens-icon { font-size:0.85rem; }
+.sens-label {
+  font-size:0.72rem; color:var(--t2); font-weight:700;
+  white-space:nowrap;
+}
+.sens-slider {
+  flex:1; -webkit-appearance:none; appearance:none;
+  height:5px; border-radius:3px; outline:none; cursor:pointer;
+  background: linear-gradient(to right, var(--accent) 0%, var(--accent) 50%, var(--input-bg) 50%);
+}
+.sens-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:15px; height:15px; border-radius:50%;
+  background:var(--accent); cursor:pointer;
+  box-shadow:0 0 4px rgba(58,123,213,0.5);
+}
+.sens-slider::-moz-range-thumb {
+  width:15px; height:15px; border-radius:50%;
+  background:var(--accent); cursor:pointer; border:none;
+}
+.sens-val {
+  font-size:0.7rem; color:var(--accent); font-weight:800;
+  min-width:28px; text-align:center;
+}
+.sens-presets { display:flex; gap:5px; margin-top:6px; }
+.sens-preset {
+  flex:1; padding:3px 0; border-radius:6px; border:1px solid var(--card-border);
+  font-size:0.67rem; font-weight:700; cursor:pointer;
+  background:var(--input-bg); color:var(--t3);
+  transition:all var(--transition); text-align:center;
+}
+.sens-preset:hover { border-color:var(--accent); color:var(--accent); }
+.sens-preset.active { background:rgba(58,123,213,0.18); color:var(--accent); border-color:var(--accent); }
 
-        @media (max-width: 600px) {
-            .info-grid { grid-template-columns: 1fr; }
-            h1 { font-size: 1.4rem; }
-            .controls { gap: 12px; }
-            .login-card { padding: 28px 22px; }
-            .lang-mode-bar { gap: 8px; }
-        }
-    </style>
+/* SPEAKER BAR */
+.spk-label { font-size:0.75rem; color:var(--t2); margin-bottom:6px; font-weight:600; }
+.spk-btns  { display:flex; gap:7px; flex-wrap:wrap; }
+.spk-btn {
+  padding:5px 12px; border-radius:8px; border:2px solid transparent;
+  font-size:0.76rem; font-weight:700; cursor:pointer; transition:all var(--transition);
+  background:var(--input-bg); color:var(--t2);
+}
+.spk-btn.active { transform:scale(1.05); }
+.spk-0 { --sc:#3a7bd5; }
+.spk-1 { --sc:#ff9f43; }
+.spk-2 { --sc:#6c5ce7; }
+.spk-3 { --sc:#00b894; }
+.spk-4 { --sc:#fd79a8; }
+.spk-btn.active { border-color:var(--sc); background:color-mix(in srgb,var(--sc) 18%,transparent); color:var(--sc); }
+
+/* LANG MODE */
+.lang-mode { display:flex; gap:8px; }
+.lang-mode-btn {
+  flex:1; padding:7px; border-radius:9px; border:2px solid var(--card-border);
+  background:var(--input-bg); color:var(--t2); font-size:0.77rem; font-weight:700;
+  cursor:pointer; text-align:center; transition:all var(--transition);
+}
+.lang-mode-btn.active-te { background:rgba(255,165,0,0.18); color:var(--te); border-color:rgba(255,165,0,0.5); }
+.lang-mode-btn.active-en { background:rgba(58,123,213,0.18); color:#7ab8ff; border-color:rgba(58,123,213,0.5); }
+
+/* ══════════════════════════════════════════
+   RIGHT PANEL — TRANSCRIPT
+══════════════════════════════════════════ */
+.search-row {
+  display:flex; gap:8px; align-items:center;
+}
+.search-input {
+  flex:1; padding:9px 14px;
+  background:var(--input-bg); border:1px solid var(--card-border);
+  border-radius:9px; color:var(--t1); font-size:0.87rem;
+  outline:none; transition:border-color var(--transition);
+}
+.search-input:focus { border-color:var(--accent); }
+.search-input::placeholder { color:var(--t3); }
+.search-count { font-size:0.75rem; color:var(--t3); white-space:nowrap; }
+
+.transcript-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.transcript-header h3 { font-size:0.92rem; color:var(--accent); font-weight:700; }
+.seg-stats { font-size:0.73rem; color:var(--t3); }
+
+.transcript-box {
+  background:var(--input-bg); border-radius:10px;
+  padding:14px; min-height:220px; max-height:460px;
+  overflow-y:auto;
+}
+.empty-state { color:var(--t3); font-size:0.88rem; text-align:center; padding:40px 0; }
+
+/* CHAT BUBBLES */
+.bubble-wrap { margin-bottom:10px; display:flex; flex-direction:column; }
+.bubble-wrap.side-en { align-items:flex-start; }
+.bubble-wrap.side-te { align-items:flex-end; }
+
+.bubble-meta {
+  display:flex; align-items:center; gap:6px;
+  margin-bottom:4px; padding:0 4px;
+}
+.bubble-wrap.side-te .bubble-meta { flex-direction:row-reverse; }
+
+.bub-spk { font-size:0.68rem; color:var(--t3); font-weight:600; }
+.bub-ts  { font-size:0.65rem; color:var(--t3); }
+.lang-tag {
+  display:inline-block; font-size:0.62rem; padding:1px 6px;
+  border-radius:4px; font-weight:800; line-height:1.4;
+}
+.lt-en  { background:rgba(58,123,213,0.3); color:#7ab8ff; }
+.lt-te  { background:rgba(255,165,0,0.3); color:var(--te); }
+.lt-mix { background:rgba(0,206,201,0.3); color:var(--green); }
+
+.bubble {
+  max-width:88%; border-radius:14px; padding:10px 13px;
+  position:relative; transition:all var(--transition);
+}
+.bubble.side-en { background:var(--bub-en-bg); border:1px solid var(--bub-en-bd); border-bottom-left-radius:4px; }
+.bubble.side-te { background:var(--bub-te-bg); border:1px solid var(--bub-te-bd); border-bottom-right-radius:4px; }
+
+/* Action / Decision highlights */
+.bubble.is-action   { border-color:var(--action-border);   background:var(--action-glow);   }
+.bubble.is-decision { border-color:var(--decision-border); background:var(--decision-glow); }
+.action-tag   { display:inline-block; font-size:0.62rem; padding:1px 6px; border-radius:4px; font-weight:800; margin-bottom:4px; background:rgba(249,202,36,0.25); color:#f9ca24; }
+.decision-tag { display:inline-block; font-size:0.62rem; padding:1px 6px; border-radius:4px; font-weight:800; margin-bottom:4px; background:rgba(108,92,231,0.25); color:#a29bfe; }
+
+.bub-original    { font-size:0.9rem; color:var(--t1); line-height:1.5; word-break:break-word; }
+.bub-translation { font-size:0.83rem; color:var(--green); margin-top:4px; line-height:1.5; }
+.bub-translation::before { content:'→ '; color:var(--t3); }
+.bub-pending { font-size:0.75rem; color:var(--t3); font-style:italic; margin-top:4px; }
+
+/* EDIT BUBBLE */
+.bub-edit-btn {
+  position:absolute; top:6px; right:8px;
+  font-size:0.68rem; color:var(--t3); cursor:pointer;
+  padding:2px 6px; border-radius:5px; opacity:0;
+  border:1px solid transparent; background:transparent;
+  transition:all var(--transition);
+}
+.bubble:hover .bub-edit-btn { opacity:1; background:var(--input-bg); border-color:var(--card-border); }
+.bub-edit-input {
+  width:100%; margin-top:4px; padding:7px 9px;
+  background:var(--input-bg); border:1px solid var(--accent);
+  border-radius:7px; color:var(--t1); font-size:0.9rem;
+  font-family:inherit; outline:none; resize:none;
+}
+.bub-edit-actions { display:flex; gap:6px; margin-top:5px; }
+.bub-save-btn, .bub-cancel-btn {
+  padding:3px 10px; border-radius:6px; border:none;
+  font-size:0.75rem; font-weight:700; cursor:pointer;
+}
+.bub-save-btn   { background:var(--accent); color:#fff; }
+.bub-cancel-btn { background:var(--input-bg); color:var(--t2); }
+
+.interim-bubble { color:var(--t3); font-style:italic; font-size:0.87rem; padding:6px 4px; }
+
+/* ══════════════════════════════════════════
+   QUICK SUMMARY PANEL
+══════════════════════════════════════════ */
+.summary-section {
+  display:none; margin-top:14px;
+  background:var(--card); border:1px solid var(--card-border);
+  border-radius:var(--radius); padding:16px 18px;
+  animation: fadeSlideUp 0.3s ease;
+}
+.summary-section.visible { display:block; }
+@keyframes fadeSlideUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.summary-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px; flex-wrap:wrap; gap:8px;
+}
+.summary-header h3 { font-size:0.92rem; font-weight:700; color:#a29bfe; }
+.summary-close-btn {
+  padding:3px 10px; border-radius:7px; border:1px solid var(--card-border);
+  background:var(--input-bg); color:var(--t2); font-size:0.74rem;
+  cursor:pointer; transition:all var(--transition);
+}
+.summary-close-btn:hover { background:var(--card-hover); }
+
+.summary-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:12px; margin-bottom:14px;
+}
+@media(max-width:600px){ .summary-grid { grid-template-columns:1fr; } }
+
+.summary-card {
+  background:var(--input-bg); border:1px solid var(--card-border);
+  border-radius:10px; padding:12px 14px;
+}
+.summary-card-title {
+  font-size:0.72rem; font-weight:800; letter-spacing:.5px;
+  color:var(--t2); margin-bottom:7px; text-transform:uppercase;
+  display:flex; align-items:center; gap:5px;
+}
+.summary-card ul {
+  list-style:none; padding:0; margin:0;
+  display:flex; flex-direction:column; gap:5px;
+}
+.summary-card li {
+  font-size:0.83rem; color:var(--t1); line-height:1.45;
+  padding-left:14px; position:relative;
+}
+.summary-card li::before { content:'•'; position:absolute; left:0; color:var(--t3); }
+.summary-card li.none { color:var(--t3); font-style:italic; padding-left:0; }
+.summary-card li.none::before { display:none; }
+
+.summary-overview {
+  background: linear-gradient(135deg, rgba(108,92,231,0.12), rgba(58,123,213,0.10));
+  border:1px solid rgba(108,92,231,0.3);
+  border-radius:10px; padding:13px 16px; margin-bottom:12px;
+  font-size:0.87rem; line-height:1.65; color:var(--t1);
+}
+.summary-overview strong { color:#a29bfe; }
+
+.summary-stats-row {
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;
+}
+.sum-stat {
+  flex:1; min-width:80px; text-align:center;
+  background:var(--input-bg); border:1px solid var(--card-border);
+  border-radius:9px; padding:9px 6px;
+}
+.sum-stat-val  { font-size:1.25rem; font-weight:800; color:var(--accent); }
+.sum-stat-lbl  { font-size:0.65rem; color:var(--t3); margin-top:2px; text-transform:uppercase; letter-spacing:.4px; }
+
+.summary-copy-btn {
+  width:100%; padding:9px; border:none; border-radius:9px;
+  background:linear-gradient(135deg,rgba(108,92,231,0.3),rgba(58,123,213,0.3));
+  color:#a29bfe; font-size:0.82rem; font-weight:700;
+  cursor:pointer; transition:all var(--transition); border:1px solid rgba(108,92,231,0.35);
+}
+.summary-copy-btn:hover { background:linear-gradient(135deg,rgba(108,92,231,0.42),rgba(58,123,213,0.42)); }
+
+/* Summarize button in the action row */
+.btn-summary {
+  background:rgba(108,92,231,0.18); color:#a29bfe;
+  border:1px solid rgba(108,92,231,0.38);
+}
+.btn-summary:hover:not(:disabled) {
+  background:rgba(108,92,231,0.28);
+  transform:translateY(-2px); box-shadow:0 5px 16px rgba(108,92,231,0.28);
+}
+
+/* ══════════════════════════════════════════
+   ACTION ROW BELOW PANELS
+══════════════════════════════════════════ */
+.action-row {
+  display:flex; gap:10px; flex-wrap:wrap;
+  justify-content:center; margin-bottom:16px;
+}
+.btn {
+  padding:11px 24px; border:none; border-radius:10px;
+  font-size:0.87rem; font-weight:700; cursor:pointer;
+  transition:all var(--transition); display:flex; align-items:center; gap:7px;
+}
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+.btn-generate { background:linear-gradient(135deg,#00b894,var(--green)); color:#fff; }
+.btn-generate:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 5px 16px rgba(0,206,201,0.35); }
+.btn-clear    { background:var(--card); color:var(--t2); border:1px solid var(--card-border); }
+.btn-clear:hover:not(:disabled) { background:var(--card-hover); }
+.btn-history  { background:rgba(108,92,231,0.18); color:#a29bfe; border:1px solid rgba(108,92,231,0.35); }
+.btn-history:hover { background:rgba(108,92,231,0.28); }
+.btn-print    { background:rgba(0,184,148,0.18); color:#00b894; border:1px solid rgba(0,184,148,0.35); }
+.btn-print:hover { background:rgba(0,184,148,0.28); }
+
+/* LOADING */
+.loading-overlay { display:none; text-align:center; padding:28px; color:var(--green); }
+.loading-overlay.visible { display:block; }
+.spinner { width:38px; height:38px; border:3px solid rgba(0,206,201,0.2); border-top-color:var(--green); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 10px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ══════════════════════════════════════════
+   MOM OUTPUT
+══════════════════════════════════════════ */
+.mom-section { display:none; }
+.mom-section.visible { display:block; margin-bottom:20px; }
+
+.keyword-panel { display:none; margin-bottom:14px; }
+.keyword-panel.visible { display:block; }
+.keyword-title { font-size:0.8rem; color:var(--t2); margin-bottom:8px; font-weight:700; }
+.keyword-tags  { display:flex; gap:6px; flex-wrap:wrap; }
+.kw-tag {
+  padding:3px 10px; border-radius:20px;
+  font-size:0.75rem; font-weight:700;
+  border:1px solid rgba(58,123,213,0.3);
+  background:rgba(58,123,213,0.12); color:#7ab8ff;
+  cursor:default; transition:all var(--transition);
+}
+.kw-tag:hover { background:rgba(58,123,213,0.22); }
+
+.mom-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+.mom-header h3 { font-size:0.92rem; color:var(--green); font-weight:700; }
+.mom-btns { display:flex; gap:7px; }
+.btn-copy     { background:rgba(58,123,213,0.2); color:#7ab8ff; border:1px solid rgba(58,123,213,0.35); }
+.btn-copy:hover { background:rgba(58,123,213,0.3); }
+.btn-download { background:rgba(255,165,0,0.2); color:var(--te); border:1px solid rgba(255,165,0,0.35); }
+.btn-download:hover { background:rgba(255,165,0,0.3); }
+
+.mom-output {
+  background:var(--input-bg); border-radius:10px; padding:20px;
+  font-size:0.88rem; line-height:1.85; white-space:pre-wrap;
+  word-wrap:break-word; max-height:560px; overflow-y:auto;
+  border:1px solid var(--card-border); font-family:'Courier New',monospace;
+}
+
+/* ══════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════ */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(6px);
+  z-index:1000; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--card); border:1px solid var(--card-border);
+  border-radius:18px; width:100%; max-width:540px;
+  max-height:80vh; overflow:hidden; display:flex; flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 20px; border-bottom:1px solid var(--card-border);
+}
+.modal-head h3 { font-size:1rem; font-weight:700; }
+.modal-close {
+  width:30px; height:30px; border-radius:8px;
+  border:1px solid var(--card-border); background:var(--input-bg);
+  color:var(--t2); cursor:pointer; font-size:1rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.modal-close:hover { background:var(--card-hover); }
+.modal-body { padding:16px 20px; overflow-y:auto; flex:1; }
+
+/* HISTORY LIST */
+.hist-item {
+  background:var(--input-bg); border:1px solid var(--card-border);
+  border-radius:10px; padding:12px 14px; margin-bottom:10px; cursor:pointer;
+  transition:all var(--transition);
+}
+.hist-item:hover { background:var(--card-hover); border-color:var(--accent); }
+.hist-title { font-size:0.9rem; font-weight:700; margin-bottom:3px; }
+.hist-meta  { font-size:0.75rem; color:var(--t3); }
+.hist-empty { text-align:center; padding:30px; color:var(--t3); }
+
+/* TEMPLATE CARDS */
+.tpl-cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.tpl-card {
+  background:var(--input-bg); border:2px solid var(--card-border);
+  border-radius:10px; padding:13px; cursor:pointer; transition:all var(--transition);
+}
+.tpl-card:hover { border-color:var(--accent); background:rgba(58,123,213,0.1); }
+.tpl-icon  { font-size:1.4rem; margin-bottom:5px; }
+.tpl-name  { font-size:0.87rem; font-weight:700; margin-bottom:3px; }
+.tpl-desc  { font-size:0.72rem; color:var(--t2); line-height:1.4; }
+
+/* AUTO-SAVE BADGE */
+.autosave-badge {
+  display:none; font-size:0.7rem; color:var(--green); padding:2px 8px;
+  border-radius:6px; background:rgba(0,206,201,0.1); border:1px solid rgba(0,206,201,0.2);
+}
+.autosave-badge.visible { display:inline-block; }
+
+/* ══════════════════════════════════════════
+   PRINT STYLES
+══════════════════════════════════════════ */
+@media print {
+  body { background:#fff !important; color:#111 !important; }
+  .login-page,.app-header,.badges,.split-layout,
+  .action-row,.loading-overlay,.modal-overlay,
+  .keyword-panel,.summary-section,.banner { display:none !important; }
+  .app-page { display:block !important; }
+  .mom-section { display:block !important; }
+  .mom-header .mom-btns { display:none !important; }
+  .mom-output {
+    max-height:none !important; background:#fff !important; color:#111 !important;
+    border:none !important; font-size:10.5pt !important;
+  }
+  .mom-header h3 { color:#333 !important; }
+  .card { background:#fff !important; border:none !important; box-shadow:none !important; }
+}
+
+/* ══════════════════════════════════════════
+   MISC
+══════════════════════════════════════════ */
+.highlight { background:rgba(249,202,36,0.3); border-radius:3px; padding:0 2px; }
+@media(max-width:600px) {
+  .info-grid { grid-template-columns:1fr; }
+  .app-title { font-size:1.35rem; }
+  .tpl-cards { grid-template-columns:1fr; }
+}
+</style>
 </head>
 <body>
 
-<!-- ==================== LOGIN PAGE ==================== -->
+<!-- ════════════════ LOGIN ════════════════ -->
 <div class="login-page" id="loginPage">
-    <div class="login-card">
-        <div class="logo">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="30" stroke="url(#lg1)" stroke-width="2.5" fill="rgba(58,123,213,0.08)"/>
-                <path d="M32 18 C28 18 20 22 20 32 C20 42 28 46 32 46" stroke="#3a7bd5" stroke-width="2" fill="none" stroke-linecap="round"/>
-                <path d="M32 18 C36 18 44 22 44 32 C44 42 36 46 32 46" stroke="#00d2ff" stroke-width="2" fill="none" stroke-linecap="round"/>
-                <circle cx="32" cy="32" r="4" fill="#3a7bd5"/>
-                <line x1="36" y1="32" x2="48" y2="28" stroke="#ff4757" stroke-width="2" stroke-linecap="round"/>
-                <line x1="36" y1="32" x2="48" y2="32" stroke="#ff6b81" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="36" y1="32" x2="48" y2="36" stroke="#ff4757" stroke-width="2" stroke-linecap="round"/>
-                <defs>
-                    <linearGradient id="lg1" x1="0" y1="0" x2="64" y2="64">
-                        <stop offset="0%" stop-color="#3a7bd5"/>
-                        <stop offset="100%" stop-color="#00d2ff"/>
-                    </linearGradient>
-                </defs>
-            </svg>
-        </div>
-        <h2>Voice MOM Generator</h2>
-        <p class="login-subtitle">Telugu &amp; English — with auto translation</p>
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="login-field">
-                <label for="loginUser">Username</label>
-                <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username" required autofocus>
-            </div>
-            <div class="login-field">
-                <label for="loginPass">Password</label>
-                <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" required>
-                <label class="show-pw">
-                    <input type="checkbox" onchange="document.getElementById('loginPass').type=this.checked?'text':'password'">
-                    Show password
-                </label>
-            </div>
-            <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
-        </form>
-        <div class="login-error" id="loginError"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="30" stroke="url(#g1)" stroke-width="2.5" fill="rgba(58,123,213,0.08)"/>
+        <path d="M32 18C28 18 20 22 20 32s8 14 12 14" stroke="#3a7bd5" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M32 18C36 18 44 22 44 32s-8 14-12 14" stroke="#00d2ff" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="4" fill="#3a7bd5"/>
+        <line x1="36" y1="32" x2="48" y2="28" stroke="#ff4757" stroke-width="2" stroke-linecap="round"/>
+        <line x1="36" y1="32" x2="48" y2="32" stroke="#ff6b81" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="36" y1="32" x2="48" y2="36" stroke="#ff4757" stroke-width="2" stroke-linecap="round"/>
+        <defs><linearGradient id="g1" x1="0" y1="0" x2="64" y2="64">
+          <stop offset="0%" stop-color="#3a7bd5"/><stop offset="100%" stop-color="#00d2ff"/>
+        </linearGradient></defs>
+      </svg>
     </div>
+    <h2>Voice MOM Generator</h2>
+    <p class="login-sub">Telugu &amp; English · Auto Translation · AI Notes</p>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="lf"><label>Username</label>
+        <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username" required autofocus></div>
+      <div class="lf"><label>Password</label>
+        <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" required>
+        <label class="show-pw">
+          <input type="checkbox" onchange="document.getElementById('loginPass').type=this.checked?'text':'password'">
+          Show password
+        </label>
+      </div>
+      <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+    </form>
+    <div class="login-err" id="loginError"></div>
+  </div>
 </div>
 
-<!-- ==================== MAIN APP ==================== -->
+<!-- ════════════════ MAIN APP ════════════════ -->
 <div class="app-page" id="appPage">
-    <div class="container">
+  <div class="app-container">
 
-        <div class="top-bar">
-            <div></div>
-            <div class="user-info">
-                <span class="user-badge" id="loggedInUser"></span>
-                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    <!-- HEADER -->
+    <div class="app-header">
+      <div class="app-title-wrap">
+        <div class="app-title">🎙 Voice MOM Generator</div>
+        <div class="app-sub">Telugu + English · Auto translate · Speaker labels · History</div>
+      </div>
+      <div class="header-actions">
+        <span class="autosave-badge" id="autosaveBadge">✓ Saved</span>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <button class="icon-btn" onclick="openHistory()" title="Meeting History">📚</button>
+        <div class="user-pill">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <span class="user-name" id="loggedInUser"></span>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- BADGES -->
+    <div class="badges">
+      <span class="badge b-te">🟠 Telugu Recognition</span>
+      <span class="badge b-en">🔵 English Recognition</span>
+      <span class="badge b-tr">⚡ Auto Translate</span>
+      <span class="badge b-auto">👤 Speaker Labels</span>
+      <span class="badge b-auto">💾 Auto-Save</span>
+    </div>
+
+    <!-- BANNERS -->
+    <div class="unsupported" id="unsupportedMsg">⚠️ Speech Recognition requires <b>Google Chrome</b> or <b>Microsoft Edge</b>.</div>
+    <div class="banner banner-err" id="micBanner">🎤 Microphone access denied. Click the 🔒 lock icon in the address bar → Allow → Refresh.</div>
+    <div class="banner banner-info" id="infoBanner"></div>
+
+    <div id="mainApp">
+
+    <!-- ═══ SPLIT LAYOUT ═══ -->
+    <div class="split-layout">
+
+      <!-- ── LEFT PANEL ── -->
+      <div class="left-panel">
+
+        <!-- Meeting Info (collapsible) -->
+        <div class="card" id="meetingCard">
+          <div class="card-header" onclick="toggleMeetingInfo()">
+            <h3>📋 Meeting Details</h3>
+            <div class="collapse-btn open" id="collapseBtn">▼</div>
+          </div>
+          <div class="card-body" id="meetingBody">
+            <div style="margin-bottom:10px">
+              <div class="spk-label">Quick Templates</div>
+              <div class="template-bar">
+                <button class="tpl-btn" onclick="openTemplates()">📋 Templates</button>
+              </div>
             </div>
+            <div class="info-grid">
+              <div class="info-field span2">
+                <label>Meeting Title</label>
+                <input type="text" id="meetingTitle" placeholder="e.g., Sprint Planning – Week 16" oninput="autoSave()">
+              </div>
+              <div class="info-field">
+                <label>Date &amp; Time</label>
+                <input type="datetime-local" id="meetingDate" oninput="autoSave()">
+              </div>
+              <div class="info-field">
+                <label>Location / Platform</label>
+                <input type="text" id="location" placeholder="Room A / Zoom" oninput="autoSave()">
+              </div>
+              <div class="info-field span2">
+                <label>Attendees</label>
+                <input type="text" id="attendees" placeholder="e.g., Vamsi, Ravi, Priya" oninput="autoSave()">
+              </div>
+              <div class="info-field span2">
+                <label>Agenda</label>
+                <textarea id="agenda" placeholder="Brief agenda points..." oninput="autoSave()"></textarea>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <h1>Voice MOM Generator</h1>
-        <p class="subtitle">Speak in Telugu or English — Telugu is auto-translated to English</p>
-
-        <div class="feature-badges">
-            <span class="badge badge-te">🗣 Telugu Recognition</span>
-            <span class="badge badge-en">🗣 English Recognition</span>
-            <span class="badge badge-tr">⚡ Auto Translate → English</span>
+        <!-- Language Mode -->
+        <div class="card">
+          <div style="font-size:0.78rem;color:var(--t2);margin-bottom:8px;font-weight:700;">🌐 Start Listening In</div>
+          <div class="lang-mode">
+            <button class="lang-mode-btn active-te" id="btnTE" onclick="setStartLang('te-IN')">🟠 Telugu</button>
+            <button class="lang-mode-btn" id="btnEN" onclick="setStartLang('en-IN')">🔵 English</button>
+          </div>
         </div>
 
-        <div class="unsupported-msg" id="unsupportedMsg">
-            ⚠️ Speech Recognition requires <b>Google Chrome</b> or <b>Microsoft Edge</b>.
+        <!-- Waveform + Engine + Controls -->
+        <div class="card">
+          <!-- Waveform -->
+          <div class="waveform-wrap idle" id="waveform"></div>
+
+          <!-- Engine status -->
+          <div class="engine-row" id="engineRow" style="margin:10px 0 14px;">
+            <div class="eng-dot"></div>
+            <span class="eng-label" id="engineLabel">Engine: Idle</span>
+          </div>
+
+          <!-- Controls -->
+          <div class="controls">
+            <div class="timer" id="timer">00:00</div>
+            <button class="rec-btn" id="recordBtn" onclick="toggleRecording()" title="Start / Stop">
+              <div class="dot"></div>
+            </button>
+            <button class="pause-btn" id="pauseBtn" onclick="togglePause()" title="Pause / Resume">⏸</button>
+            <div class="status-col">
+              <span class="status-badge sb-idle" id="statusBadge">Ready</span>
+              <span class="det-lang" id="detectedLang"></span>
+            </div>
+          </div>
         </div>
 
-        <div class="mic-banner" id="micBanner">
-            🎤 Microphone access denied.<br>
-            Click the lock/mic icon in the address bar → Allow microphone → then try again.
+        <!-- Mic Level + Sensitivity -->
+        <div class="card" id="micLevelCard" style="display:none;">
+          <div class="mic-wrap">
+            <div class="mic-lbl">
+              <span>🎤 Mic Level</span>
+              <span id="micLevelPct">0%</span>
+            </div>
+            <div class="mic-track"><div class="mic-fill" id="micFill"></div></div>
+            <div class="mic-tip" id="micTip">If bar is flat → raise sensitivity below or move closer to mic</div>
+          </div>
+
+          <!-- Sensitivity Slider -->
+          <div class="sens-row">
+            <span class="sens-icon">🔊</span>
+            <span class="sens-label">Sensitivity</span>
+            <input type="range" class="sens-slider" id="sensSlider"
+              min="1" max="8" step="0.5" value="3"
+              oninput="updateSensitivity(this.value)">
+            <span class="sens-val" id="sensVal">3×</span>
+          </div>
+          <div class="sens-presets">
+            <button class="sens-preset" onclick="setSensPreset(1.5,'Close mic')">Close</button>
+            <button class="sens-preset active" id="presetNormal" onclick="setSensPreset(3,'Normal')">Normal</button>
+            <button class="sens-preset" onclick="setSensPreset(5,'Distant')">Distant</button>
+            <button class="sens-preset" onclick="setSensPreset(8,'Very far')">Very Far</button>
+          </div>
         </div>
 
-        <div id="mainApp">
+        <!-- Speaker Labels -->
+        <div class="card">
+          <div class="spk-label">👤 Current Speaker</div>
+          <div class="spk-btns" id="spkBtns">
+            <button class="spk-btn spk-0 active" onclick="setSpeaker(0)">Speaker 1</button>
+            <button class="spk-btn spk-1"         onclick="setSpeaker(1)">Speaker 2</button>
+            <button class="spk-btn spk-2"         onclick="setSpeaker(2)">Speaker 3</button>
+            <button class="spk-btn spk-3"         onclick="setSpeaker(3)">Speaker 4</button>
+            <button class="spk-btn spk-4"         onclick="setSpeaker(4)">Speaker 5</button>
+          </div>
+        </div>
 
-            <!-- Meeting Details -->
-            <div class="meeting-info">
-                <h3>📋 Meeting Details</h3>
-                <div class="info-grid">
-                    <div>
-                        <label>Meeting Title</label>
-                        <input type="text" id="meetingTitle" placeholder="e.g., Sprint Planning – Week 16">
-                    </div>
-                    <div>
-                        <label>Date &amp; Time</label>
-                        <input type="datetime-local" id="meetingDate">
-                    </div>
-                    <div>
-                        <label>Attendees</label>
-                        <input type="text" id="attendees" placeholder="e.g., Vamsi, Ravi, Priya">
-                    </div>
-                    <div>
-                        <label>Location / Platform</label>
-                        <input type="text" id="location" placeholder="e.g., Conference Room / Zoom">
-                    </div>
-                    <div class="full-width">
-                        <label>Agenda (optional)</label>
-                        <textarea id="agenda" placeholder="Brief agenda points..."></textarea>
-                    </div>
-                </div>
-            </div>
+      </div><!-- /left-panel -->
 
-            <!-- Language Mode -->
-            <div class="lang-mode-bar">
-                <span>Start listening in:</span>
-                <button class="lang-btn active-te" id="btnTE" onclick="setStartLang('te-IN')">Telugu first</button>
-                <button class="lang-btn" id="btnEN" onclick="setStartLang('en-IN')">English first</button>
-                <button class="lang-btn" id="btnAuto" onclick="setStartLang('auto')">Auto detect</button>
-            </div>
+      <!-- ── RIGHT PANEL ── -->
+      <div class="right-panel">
 
-            <!-- Engine Status -->
-            <div class="engine-status">
-                <div class="engine-indicator" id="engineIndicator">
-                    <div class="dot-indicator"></div>
-                    <span id="engineLabel">Engine: Idle</span>
-                </div>
-            </div>
+        <!-- Search -->
+        <div class="card" style="padding:12px 16px;">
+          <div class="search-row">
+            <input class="search-input" id="searchInput" placeholder="🔍  Search transcript…" oninput="renderTranscript()">
+            <span class="search-count" id="searchCount"></span>
+          </div>
+        </div>
 
-            <!-- Recording Controls -->
-            <div class="controls">
-                <div class="timer" id="timer">00:00</div>
-                <button class="record-btn" id="recordBtn" onclick="toggleRecording()" title="Start / Stop Recording">
-                    <div class="dot"></div>
-                </button>
-                <div class="status-area">
-                    <span class="status-badge idle" id="statusBadge">Ready</span>
-                    <span class="detected-lang" id="detectedLang"></span>
-                </div>
-            </div>
+        <!-- Transcript -->
+        <div class="card">
+          <div class="transcript-header">
+            <h3>💬 Live Transcript</h3>
+            <span class="seg-stats" id="segStats">0 words · 0 segments</span>
+          </div>
+          <div class="transcript-box" id="transcriptBox">
+            <div class="empty-state">Click the red button and speak. Telugu shows with English translation below each bubble.</div>
+          </div>
+        </div>
 
-            <!-- Live Transcript -->
-            <div class="transcript-section">
-                <div class="section-header">
-                    <h3>Live Transcript <span style="font-size:0.75rem;color:#555;font-weight:400;">(Telugu shown with English translation below)</span></h3>
-                    <span class="word-count" id="wordCount">0 words</span>
-                </div>
-                <div class="transcript-box" id="transcriptBox">
-                    <span style="color:#555;font-size:0.9rem;">Click the red button and speak in Telugu or English. Telugu will be automatically translated to English.</span>
-                </div>
-            </div>
+      </div><!-- /right-panel -->
+    </div><!-- /split-layout -->
 
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button class="btn btn-generate" id="generateBtn" onclick="generateMOM()" disabled>
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    Generate MOM
-                </button>
-                <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
-            </div>
+    <!-- ACTION ROW -->
+    <div class="action-row">
+      <button class="btn btn-generate" id="generateBtn" onclick="generateMOM()" disabled>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Generate MOM
+      </button>
+      <button class="btn btn-summary" id="summaryBtn" onclick="generateSummary()" disabled>✨ Quick Summary</button>
+      <button class="btn btn-clear" onclick="clearAll()">🗑 Clear All</button>
+      <button class="btn btn-history" onclick="openHistory()">📚 History</button>
+      <button class="btn btn-print" id="printBtn" onclick="printMOM()" disabled>🖨 Print MOM</button>
+    </div>
 
-            <!-- Loading -->
-            <div class="loading-overlay" id="loading">
-                <div class="spinner"></div>
-                <p>Generating Minutes of Meeting…</p>
-            </div>
+    <!-- QUICK SUMMARY SECTION -->
+    <div class="summary-section" id="summarySection">
+      <div class="summary-header">
+        <h3>✨ Quick Summary</h3>
+        <button class="summary-close-btn" onclick="closeSummary()">✕ Close</button>
+      </div>
 
-            <!-- MOM Output -->
-            <div class="mom-section" id="momSection">
-                <div class="section-header">
-                    <h3>Minutes of Meeting (English)</h3>
-                    <div style="display:flex;gap:8px;">
-                        <button class="btn btn-copy" onclick="copyMOM()">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                            Copy
-                        </button>
-                        <button class="btn btn-download" onclick="downloadMOM()">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                            Download
-                        </button>
-                    </div>
-                </div>
-                <div class="mom-output" id="momOutput"></div>
-            </div>
+      <!-- Overview paragraph -->
+      <div class="summary-overview" id="summaryOverview"></div>
 
-        </div><!-- /#mainApp -->
-    </div><!-- /.container -->
+      <!-- Stats bar -->
+      <div class="summary-stats-row" id="summaryStats"></div>
+
+      <!-- 4-card grid: topics · actions · decisions · speakers -->
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-card-title">📌 Key Topics</div>
+          <ul id="sumTopics"></ul>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-title">⚡ Action Items</div>
+          <ul id="sumActions"></ul>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-title">✅ Decisions</div>
+          <ul id="sumDecisions"></ul>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-title">👤 Speaker Breakdown</div>
+          <ul id="sumSpeakers"></ul>
+        </div>
+      </div>
+
+      <button class="summary-copy-btn" onclick="copySummary()">📋 Copy Summary to Clipboard</button>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading-overlay" id="loading">
+      <div class="spinner"></div>
+      <p>Generating Minutes of Meeting…</p>
+    </div>
+
+    <!-- MOM OUTPUT -->
+    <div class="mom-section card" id="momSection">
+      <!-- Keywords -->
+      <div class="keyword-panel" id="keywordPanel">
+        <div class="keyword-title">🔑 Key Topics Mentioned</div>
+        <div class="keyword-tags" id="keywordTags"></div>
+      </div>
+
+      <div class="mom-header">
+        <h3>📄 Minutes of Meeting (English)</h3>
+        <div class="mom-btns">
+          <button class="btn btn-copy" id="copyBtn" onclick="copyMOM()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy
+          </button>
+          <button class="btn btn-download" id="downloadBtn" onclick="downloadMOM()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Download
+          </button>
+        </div>
+      </div>
+      <div class="mom-output" id="momOutput"></div>
+    </div>
+
+    </div><!-- /#mainApp -->
+
+  </div><!-- /.app-container -->
 </div><!-- /.app-page -->
 
+<!-- ════════════════ HISTORY MODAL ════════════════ -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📚 Meeting History</h3>
+      <button class="modal-close" onclick="closeHistory()">✕</button>
+    </div>
+    <div class="modal-body" id="historyList"></div>
+  </div>
+</div>
+
+<!-- ════════════════ TEMPLATES MODAL ════════════════ -->
+<div class="modal-overlay" id="templateModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📋 Meeting Templates</h3>
+      <button class="modal-close" onclick="closeTemplates()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tpl-cards" id="tplCards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ HISTORY VIEW MODAL ════════════════ -->
+<div class="modal-overlay" id="histViewModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-head">
+      <h3 id="histViewTitle">Meeting MOM</h3>
+      <button class="modal-close" onclick="closeHistView()">✕</button>
+    </div>
+    <div class="modal-body">
+      <pre id="histViewContent" style="font-size:0.82rem;line-height:1.8;white-space:pre-wrap;word-wrap:break-word;color:var(--t1);"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
 <script>
-// ===================== AUTH =====================
+// ══════════════════════════════════════════
+// 1. AUTH
+// ══════════════════════════════════════════
 let currentUser = '';
 
 async function checkAuth() {
-    try {
-        const res  = await fetch('/api/mom/check-auth');
-        const data = await res.json();
-        data.authenticated ? showApp(data.username) : showLogin();
-    } catch (e) { showApp('Guest'); }
+  try {
+    const r = await fetch('/api/mom/check-auth');
+    const d = await r.json();
+    d.authenticated ? showApp(d.username) : showLogin();
+  } catch { showApp('Guest'); }
 }
 
 async function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('loginUser').value.trim();
-    const password = document.getElementById('loginPass').value;
-    const errorEl  = document.getElementById('loginError');
-    const btn      = document.getElementById('loginBtn');
-
-    if (!username || !password) { errorEl.textContent = 'Enter both fields'; return; }
-    btn.disabled = true; btn.textContent = 'Signing in…'; errorEl.textContent = '';
-
-    try {
-        const res  = await fetch('/api/mom/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password}) });
-        const data = await res.json();
-        res.ok ? showApp(data.username) : (errorEl.textContent = data.error || 'Invalid credentials');
-    } catch (e) { errorEl.textContent = 'Connection error.'; }
-
-    btn.disabled = false; btn.textContent = 'Sign In';
+  e.preventDefault();
+  const un  = document.getElementById('loginUser').value.trim();
+  const pw  = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  if (!un || !pw) { err.textContent = 'Enter both fields'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…'; err.textContent = '';
+  try {
+    const r = await fetch('/api/mom/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username:un, password:pw})
+    });
+    const d = await r.json();
+    r.ok ? showApp(d.username) : (err.textContent = d.error || 'Invalid credentials');
+  } catch { err.textContent = 'Connection error.'; }
+  btn.disabled = false; btn.textContent = 'Sign In';
 }
 
 async function handleLogout() {
-    try { await fetch('/api/mom/logout', { method:'POST' }); } catch(e) {}
-    showLogin();
+  try { await fetch('/api/mom/logout', {method:'POST'}); } catch(e) {}
+  if (isRecording) stopRecording();
+  stopMicMeter();
+  showLogin();
 }
 
 function showLogin() {
-    document.getElementById('loginPage').style.display = 'flex';
-    document.getElementById('appPage').style.display   = 'none';
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginError').textContent = '';
-    currentUser = '';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('appPage').style.display   = 'none';
+  ['loginUser','loginPass'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('loginError').textContent = '';
+  currentUser = '';
 }
-
-function showApp(username) {
-    currentUser = username;
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('appPage').style.display   = 'block';
-    document.getElementById('loggedInUser').textContent = username;
+function showApp(u) {
+  currentUser = u;
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').style.display   = 'block';
+  document.getElementById('loggedInUser').textContent = u;
+  document.getElementById('userAvatar').textContent   = u.charAt(0).toUpperCase();
+  loadDraft();
 }
-
 checkAuth();
 
-// ===================== STATE =====================
+// ══════════════════════════════════════════
+// 2. THEME TOGGLE
+// ══════════════════════════════════════════
+function toggleTheme() {
+  const html = document.documentElement;
+  const dark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = dark ? '🌞' : '🌙';
+  localStorage.setItem('mom_theme', dark ? 'light' : 'dark');
+}
+(function initTheme() {
+  const saved = localStorage.getItem('mom_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = saved === 'light' ? '🌞' : '🌙';
+})();
+
+// ══════════════════════════════════════════
+// 3. TEMPLATES
+// ══════════════════════════════════════════
+const TEMPLATES = [
+  { icon:'🏃', name:'Daily Standup', loc:'Teams / Meet', dur:'15 min',
+    agenda:'1. What did you do yesterday?\n2. What will you do today?\n3. Any blockers?' },
+  { icon:'🚀', name:'Sprint Review', loc:'Conference Room', dur:'60 min',
+    agenda:'1. Sprint demo\n2. Completed stories\n3. Incomplete stories\n4. Retrospective' },
+  { icon:'🤝', name:'Client Meeting', loc:'Zoom / Webex', dur:'45 min',
+    agenda:'1. Project status update\n2. Client feedback\n3. Issues / risks\n4. Next steps' },
+  { icon:'📐', name:'Project Planning', loc:'Conference Room', dur:'90 min',
+    agenda:'1. Project scope\n2. Timeline & milestones\n3. Resources\n4. Risk assessment' },
+  { icon:'💬', name:'1-on-1 Meeting', loc:'Manager\'s desk', dur:'30 min',
+    agenda:'1. Progress & wins\n2. Challenges\n3. Goals\n4. Feedback & growth' },
+  { icon:'🐛', name:'Bug Triage', loc:'Slack Huddle', dur:'30 min',
+    agenda:'1. Critical bugs\n2. Priority assignment\n3. Owner assignment\n4. ETA' }
+];
+
+function openTemplates() {
+  const grid = document.getElementById('tplCards');
+  grid.innerHTML = TEMPLATES.map((t,i) => `
+    <div class="tpl-card" onclick="applyTemplate(${i})">
+      <div class="tpl-icon">${t.icon}</div>
+      <div class="tpl-name">${t.name}</div>
+      <div class="tpl-desc">📍 ${t.loc} · ⏱ ${t.dur}</div>
+    </div>`).join('');
+  document.getElementById('templateModal').classList.add('open');
+}
+function closeTemplates() { document.getElementById('templateModal').classList.remove('open'); }
+
+function applyTemplate(i) {
+  const t = TEMPLATES[i];
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('meetingTitle').value = t.name;
+  document.getElementById('meetingDate').value  = now.toISOString().slice(0,16);
+  document.getElementById('location').value     = t.loc;
+  document.getElementById('agenda').value       = t.agenda;
+  closeTemplates();
+  // expand meeting info if collapsed
+  const body = document.getElementById('meetingBody');
+  if (body.classList.contains('hidden')) toggleMeetingInfo();
+  showInfoBanner(`✓ Template "${t.name}" applied!`);
+  autoSave();
+}
+
+function toggleMeetingInfo() {
+  const body = document.getElementById('meetingBody');
+  const btn  = document.getElementById('collapseBtn');
+  body.classList.toggle('hidden');
+  btn.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════
+// 4. STATE
+// ══════════════════════════════════════════
 let recognition        = null;
 let isRecording        = false;
-let transcriptSegments = [];   // { lang, original, translated, translating, timestamp }
+let isPaused           = false;
+let transcriptSegments = [];
 let interimText        = '';
 let timerInterval      = null;
 let seconds            = 0;
 let generatedMOM       = '';
-let currentEngineLang  = 'te-IN';   // Default: Telugu first
-let startLangPref      = 'te-IN';   // User preference
+let currentEngineLang  = 'te-IN';
+let startLangPref      = 'te-IN';
+let langStreakCount     = 0;
+let currentSpeakerIdx  = 0;
+let autoSaveTimer      = null;
+
+const SPEAKER_COLORS = ['#3a7bd5','#ff9f43','#6c5ce7','#00b894','#fd79a8'];
+const SPEAKER_NAMES  = ['Speaker 1','Speaker 2','Speaker 3','Speaker 4','Speaker 5'];
 
 const TELUGU_REGEX      = /[\u0C00-\u0C7F]/;
 const TELUGU_CHAR_REGEX = /[\u0C00-\u0C7F]/g;
+const ACTION_REGEX      = /need to|should|will do|must|have to|action item|task|assign|deadline|complete by|responsible|follow up|next step|please do|kindly|ensure/i;
+const DECISION_REGEX    = /decided|agreed|approved|finalized|confirmed|conclusion|will go with|selected|resolved|chose|going with/i;
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SpeechRecognition) {
-    document.getElementById('unsupportedMsg').style.display = 'block';
-    document.getElementById('mainApp').style.display        = 'none';
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SpeechRec) {
+  document.getElementById('unsupportedMsg').style.display = 'block';
+  document.getElementById('mainApp').style.display        = 'none';
 }
 
-// Default date
-const nowDt = new Date();
-nowDt.setMinutes(nowDt.getMinutes() - nowDt.getTimezoneOffset());
-document.getElementById('meetingDate').value = nowDt.toISOString().slice(0, 16);
+// Init datetime
+const dtNow = new Date();
+dtNow.setMinutes(dtNow.getMinutes() - dtNow.getTimezoneOffset());
+document.getElementById('meetingDate').value = dtNow.toISOString().slice(0,16);
 
-// ===================== LANGUAGE MODE =====================
-function setStartLang(mode) {
-    startLangPref = mode === 'auto' ? 'te-IN' : mode;  // auto also starts te-IN
-    document.getElementById('btnTE').className   = 'lang-btn' + (mode === 'te-IN'  ? ' active-te'   : '');
-    document.getElementById('btnEN').className   = 'lang-btn' + (mode === 'en-IN'  ? ' active-en'   : '');
-    document.getElementById('btnAuto').className = 'lang-btn' + (mode === 'auto'   ? ' active-auto' : '');
+// Init waveform bars
+(function initWaveform() {
+  const wf = document.getElementById('waveform');
+  for (let i = 0; i < 30; i++) {
+    const b = document.createElement('div');
+    b.className = 'wf-bar';
+    b.style.animationDelay = (i * 0.055) + 's';
+    wf.appendChild(b);
+  }
+})();
+
+// ══════════════════════════════════════════
+// 5. AUTO-SAVE / RESTORE (F2)
+// ══════════════════════════════════════════
+function autoSave() {
+  try {
+    const draft = {
+      segments:  transcriptSegments,
+      seconds,
+      meeting: {
+        title:     document.getElementById('meetingTitle').value,
+        date:      document.getElementById('meetingDate').value,
+        attendees: document.getElementById('attendees').value,
+        location:  document.getElementById('location').value,
+        agenda:    document.getElementById('agenda').value,
+      },
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem('mom_draft', JSON.stringify(draft));
+    flashAutosave();
+  } catch(e) {}
 }
 
-// ===================== LANGUAGE DETECTION =====================
+function flashAutosave() {
+  const b = document.getElementById('autosaveBadge');
+  b.classList.add('visible');
+  clearTimeout(b._t);
+  b._t = setTimeout(() => b.classList.remove('visible'), 2000);
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem('mom_draft');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d.segments?.length) return;
+    const mins = Math.round((Date.now() - new Date(d.savedAt)) / 60000);
+    if (confirm(`Restore unsaved draft from ${mins} min ago? (${d.segments.length} segments recorded)`)) {
+      transcriptSegments = d.segments;
+      seconds = d.seconds || 0;
+      document.getElementById('timer').textContent        = formatTime(seconds);
+      document.getElementById('meetingTitle').value       = d.meeting?.title     || '';
+      document.getElementById('meetingDate').value        = d.meeting?.date      || '';
+      document.getElementById('attendees').value          = d.meeting?.attendees || '';
+      document.getElementById('location').value           = d.meeting?.location  || '';
+      document.getElementById('agenda').value             = d.meeting?.agenda    || '';
+      document.getElementById('generateBtn').disabled     = false;
+      document.getElementById('summaryBtn').disabled      = false;
+      renderTranscript();
+      showInfoBanner(`✓ Draft restored — ${d.segments.length} segments`);
+    }
+  } catch(e) {}
+}
+
+// Auto-save every 30 seconds while recording
+function startAutoSaveTimer() {
+  autoSaveTimer = setInterval(autoSave, 30000);
+}
+function stopAutoSaveTimer() {
+  clearInterval(autoSaveTimer);
+}
+
+// ══════════════════════════════════════════
+// 6. HISTORY (F10)
+// ══════════════════════════════════════════
+function saveMOMToHistory(mom, title) {
+  try {
+    const hist = JSON.parse(localStorage.getItem('mom_history') || '[]');
+    hist.unshift({ date: new Date().toISOString(), title: title || 'Untitled', content: mom });
+    if (hist.length > 15) hist.pop();
+    localStorage.setItem('mom_history', JSON.stringify(hist));
+  } catch(e) {}
+}
+
+function openHistory() {
+  const hist = JSON.parse(localStorage.getItem('mom_history') || '[]');
+  const list = document.getElementById('historyList');
+  if (!hist.length) {
+    list.innerHTML = '<div class="hist-empty">No meeting history yet.<br>Generate your first MOM to see it here.</div>';
+  } else {
+    list.innerHTML = hist.map((h,i) => `
+      <div class="hist-item" onclick="viewHistory(${i})">
+        <div class="hist-title">${escHtml(h.title)}</div>
+        <div class="hist-meta">${new Date(h.date).toLocaleString('en-IN')}</div>
+      </div>`).join('');
+  }
+  document.getElementById('historyModal').classList.add('open');
+}
+function closeHistory() { document.getElementById('historyModal').classList.remove('open'); }
+
+function viewHistory(i) {
+  const hist = JSON.parse(localStorage.getItem('mom_history') || '[]');
+  const h = hist[i];
+  document.getElementById('histViewTitle').textContent   = h.title;
+  document.getElementById('histViewContent').textContent = h.content;
+  document.getElementById('histViewModal').classList.add('open');
+  closeHistory();
+}
+function closeHistView() { document.getElementById('histViewModal').classList.remove('open'); }
+
+// ══════════════════════════════════════════
+// 7. LANGUAGE DETECTION
+// ══════════════════════════════════════════
 function detectLanguage(text) {
-    if (!text || !text.trim()) return 'EN';
-    const teluguChars = (text.match(TELUGU_CHAR_REGEX) || []).length;
-    const totalChars  = text.replace(/[\s\d\p{P}]/gu, '').length;
-    if (totalChars === 0) return 'EN';
-    const ratio = teluguChars / totalChars;
-    if (ratio > 0.3) return ratio > 0.7 ? 'TE' : 'MIX';
-    return 'EN';
+  if (!text?.trim()) return 'EN';
+  const teChars  = (text.match(TELUGU_CHAR_REGEX) || []).length;
+  const allChars = text.replace(/[\s\d\p{P}]/gu, '').length;
+  if (allChars === 0) return 'EN';
+  const ratio = teChars / allChars;
+  if (ratio > 0.3) return ratio > 0.7 ? 'TE' : 'MIX';
+  return 'EN';
 }
 
-// ===================== TRANSLATION =====================
-async function translateToEnglish(text, srcLang) {
-    // English-only text: no need to translate
-    if (!TELUGU_REGEX.test(text)) return text;
+// ══════════════════════════════════════════
+// 8. TRANSLATION
+// ══════════════════════════════════════════
+async function translateToEnglish(text) {
+  if (!TELUGU_REGEX.test(text)) return text;
+  try {
+    const r = await fetch('/api/translate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ text, from:'te' })
+    });
+    const d = await r.json();
+    return d.translated || text;
+  } catch { return text; }
+}
 
-    try {
-        const from = srcLang === 'te-IN' ? 'te' : 'te'; // always te→en for Telugu/mixed
-        const res  = await fetch('/api/translate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, from })
-        });
-        const data = await res.json();
-        return data.translated || text;
-    } catch (e) {
-        console.warn('Translation failed:', e.message);
-        return text;
+// ══════════════════════════════════════════
+// 9. MIC METER + WAVEFORM (U3)
+// ══════════════════════════════════════════
+let audioCtx = null, analyserNode = null, gainNode = null, meterStream = null, rafId = null;
+let micSensitivity = 3; // default gain multiplier (1–8)
+const wfBars = () => document.querySelectorAll('#waveform .wf-bar');
+
+function updateSensitivity(val) {
+  micSensitivity = parseFloat(val);
+  document.getElementById('sensVal').textContent = micSensitivity + '×';
+  // Update slider gradient fill
+  const pct = ((micSensitivity - 1) / 7) * 100;
+  document.getElementById('sensSlider').style.background =
+    `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--input-bg) ${pct}%)`;
+  // Apply to GainNode live (if recording)
+  if (gainNode) gainNode.gain.setTargetAtTime(micSensitivity, audioCtx.currentTime, 0.01);
+  // Update tip
+  const tip = document.getElementById('micTip');
+  if (micSensitivity >= 6)
+    tip.textContent = '🔊 High boost — good for very distant or slow speech';
+  else if (micSensitivity >= 3.5)
+    tip.textContent = '🔊 Boosted — good for talking across the room';
+  else if (micSensitivity <= 1.5)
+    tip.textContent = '🎤 Low boost — best when mic is very close';
+  else
+    tip.textContent = '🎤 Normal — good for 30–60 cm from mic';
+}
+
+function setSensPreset(val, label) {
+  document.getElementById('sensSlider').value = val;
+  updateSensitivity(val);
+  // Highlight active preset
+  document.querySelectorAll('.sens-preset').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === label);
+  });
+}
+
+async function startMicMeter() {
+  try {
+    // ── Key fix: no echo cancellation (kills distant speech), no noise suppression ──
+    meterStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        autoGainControl:    true,   // browser amplifies quiet input automatically
+        echoCancellation:   false,  // CRITICAL: echo cancel aggressively cuts distant audio
+        noiseSuppression:   false,  // CRITICAL: noise suppress treats quiet speech as noise
+        channelCount:       1,
+        sampleRate:         48000,
+        sampleSize:         16
+      }
+    });
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+    const src = audioCtx.createMediaStreamSource(meterStream);
+
+    // ── Gain node: boosts quiet/distant audio ──
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = micSensitivity;
+
+    // ── Analyser: higher FFT = better frequency resolution for speech ──
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 1024;
+    analyserNode.smoothingTimeConstant = 0.75; // smoothed → slow speech doesn't look flat
+
+    // Chain: mic → gain → analyser
+    src.connect(gainNode);
+    gainNode.connect(analyserNode);
+
+    const buf  = new Uint8Array(analyserNode.frequencyBinCount);
+    const fill  = document.getElementById('micFill');
+    const pctEl = document.getElementById('micLevelPct');
+    const wf    = document.getElementById('waveform');
+    const bars  = Array.from(wf.querySelectorAll('.wf-bar'));
+    document.getElementById('micLevelCard').style.display = 'block';
+    wf.classList.remove('idle');
+    wf.classList.add('recording');
+
+    // Init slider gradient
+    updateSensitivity(micSensitivity);
+
+    function tick() {
+      analyserNode.getByteFrequencyData(buf);
+
+      // Focus on speech frequencies (300 Hz – 3400 Hz) for better sensitivity display
+      // At 48000 Hz sample rate + 1024 fft, each bin = 46.875 Hz
+      // Speech band: bin 7 (~300Hz) to bin 73 (~3400Hz)
+      const speechStart = Math.floor(300  / (audioCtx.sampleRate / analyserNode.fftSize));
+      const speechEnd   = Math.floor(3400 / (audioCtx.sampleRate / analyserNode.fftSize));
+      let speechSum = 0, speechCount = 0;
+      for (let i = speechStart; i <= Math.min(speechEnd, buf.length - 1); i++) {
+        speechSum += buf[i]; speechCount++;
+      }
+      const avg = speechCount > 0 ? speechSum / speechCount : 0;
+      // Scale to 0–100, multiplied by sensitivity for visual feedback on quiet audio
+      const pct = Math.min(100, avg * (micSensitivity * 0.8));
+
+      fill.style.width = pct + '%';
+      fill.style.background = pct > 75
+        ? 'linear-gradient(90deg,#ff4757,#ff6b81)'
+        : pct > 40
+          ? 'linear-gradient(90deg,#f9ca24,#f0932b)'
+          : 'linear-gradient(90deg,#00b894,#00cec9)';
+      pctEl.textContent = Math.round(pct) + '%';
+
+      // Waveform bars — also scale by sensitivity so quiet audio visually shows up
+      bars.forEach((bar, i) => {
+        const idx = Math.floor(i * buf.length / bars.length);
+        const raw = buf[idx] / 255;
+        const h   = Math.max(3, Math.min(46, raw * 46 * (micSensitivity * 0.6)));
+        bar.style.height = h + 'px';
+      });
+
+      rafId = requestAnimationFrame(tick);
     }
+    rafId = requestAnimationFrame(tick);
+  } catch(e) { console.warn('Mic meter:', e.message); }
 }
 
-// ===================== ENGINE =====================
+function stopMicMeter() {
+  if (rafId)       { cancelAnimationFrame(rafId); rafId = null; }
+  if (meterStream) { meterStream.getTracks().forEach(t => t.stop()); meterStream = null; }
+  if (gainNode)    { try { gainNode.disconnect(); } catch(e){} gainNode = null; }
+  if (audioCtx)    { audioCtx.close().catch(()=>{}); audioCtx = null; analyserNode = null; }
+  const fill = document.getElementById('micFill');
+  if (fill) fill.style.width = '0%';
+  const wf = document.getElementById('waveform');
+  wf.classList.remove('recording');
+  wf.classList.add('idle');
+  document.getElementById('micLevelCard').style.display = 'none';
+  // reset bar heights
+  wf.querySelectorAll('.wf-bar').forEach(b => b.style.height = '4px');
+}
+
+// ══════════════════════════════════════════
+// 10. ENGINE (SpeechRecognition)
+// ══════════════════════════════════════════
 function updateEngineUI() {
-    const ind   = document.getElementById('engineIndicator');
-    const label = document.getElementById('engineLabel');
-    if (!isRecording) {
-        ind.className     = 'engine-indicator';
-        label.textContent = 'Engine: Idle';
-    } else if (currentEngineLang === 'te-IN') {
-        ind.className     = 'engine-indicator active-te';
-        label.textContent = '🟠 Listening: Telugu';
-    } else {
-        ind.className     = 'engine-indicator active-en';
-        label.textContent = '🔵 Listening: English';
-    }
+  const row = document.getElementById('engineRow');
+  const lbl = document.getElementById('engineLabel');
+  if (!isRecording) {
+    row.className = 'engine-row';
+    lbl.textContent = 'Engine: Idle';
+  } else if (isPaused) {
+    row.className = 'engine-row';
+    lbl.textContent = '⏸ Paused';
+  } else if (currentEngineLang === 'te-IN') {
+    row.className = 'engine-row eng-te';
+    lbl.textContent = '🟠 Listening: Telugu';
+  } else {
+    row.className = 'engine-row eng-en';
+    lbl.textContent = '🔵 Listening: English';
+  }
+}
+
+// Save interim to segment before engine restarts
+function saveInterimAsSegment() {
+  const text = interimText.trim();
+  if (!text) return;
+  const lang   = detectLanguage(text);
+  const segIdx = transcriptSegments.length;
+  transcriptSegments.push({
+    id: Date.now(), lang, original: text,
+    translated: lang === 'EN' ? text : null,
+    translating: lang !== 'EN',
+    timestamp: formatTime(seconds),
+    speaker: currentSpeakerIdx,
+    isAction: ACTION_REGEX.test(text),
+    isDecision: DECISION_REGEX.test(text)
+  });
+  interimText = '';
+  renderTranscript(); autoSave();
+  if (lang !== 'EN') {
+    translateToEnglish(text).then(tx => {
+      if (transcriptSegments[segIdx]) {
+        transcriptSegments[segIdx].translated  = tx;
+        transcriptSegments[segIdx].translating = false;
+        renderTranscript(); autoSave();
+      }
+    });
+  }
 }
 
 function createAndStartEngine() {
-    if (recognition) { try { recognition.abort(); } catch (e) {} }
+  if (recognition) {
+    try { recognition.onend = null; recognition.abort(); } catch(e) {}
+    recognition = null;
+  }
+  const rec = new SpeechRec();
+  rec.continuous      = true;
+  rec.interimResults  = true;
+  rec.lang            = currentEngineLang;
+  rec.maxAlternatives = 3; // more guesses = better accuracy for slow/distant speech
+  recognition = rec;
 
-    recognition = new SpeechRecognition();
-    recognition.continuous      = true;
-    recognition.interimResults  = true;
-    recognition.lang            = currentEngineLang;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = async (event) => {
-        let finalText = '', interim = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            const t = event.results[i][0].transcript;
-            event.results[i].isFinal ? (finalText += t) : (interim += t);
+  rec.onresult = async (event) => {
+    let finalText = '', interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        // Pick the alternative with highest confidence (or longest if tied)
+        let best = event.results[i][0];
+        for (let k = 1; k < event.results[i].length; k++) {
+          const alt = event.results[i][k];
+          if ((alt.confidence || 0) > (best.confidence || 0) ||
+              (alt.transcript.length > best.transcript.length && (alt.confidence || 0) >= (best.confidence || 0) - 0.05)) {
+            best = alt;
+          }
         }
-        interimText = interim;
-
-        if (finalText.trim()) {
-            const lang     = detectLanguage(finalText);
-            const needsTx  = (lang === 'TE' || lang === 'MIX');
-            const segIdx   = transcriptSegments.length;
-
-            // Push segment immediately — show original straight away
-            transcriptSegments.push({
-                lang,
-                original:    finalText.trim(),
-                translated:  needsTx ? null : finalText.trim(),  // null = pending
-                translating: needsTx,
-                timestamp:   formatTime(seconds)
-            });
-
-            updateDetectedLangUI(lang);
-            interimText = '';
-            autoSwitchEngine(lang);
-            renderTranscript();
-
-            // Translate in background — update segment when done
-            if (needsTx) {
-                const tx = await translateToEnglish(finalText.trim(), currentEngineLang);
-                if (transcriptSegments[segIdx]) {
-                    transcriptSegments[segIdx].translated  = tx;
-                    transcriptSegments[segIdx].translating = false;
-                    renderTranscript();
-                }
-            }
-        } else {
-            renderTranscript();
-        }
-    };
-
-    recognition.onerror = (event) => {
-        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-            document.getElementById('micBanner').classList.add('visible');
-            stopRecording(); return;
-        }
-        if (['no-speech','audio-capture','aborted'].includes(event.error)) {
-            if (isRecording) setTimeout(() => { if (isRecording) createAndStartEngine(); }, 300);
-        }
-    };
-
-    recognition.onend = () => {
-        if (isRecording) setTimeout(() => { if (isRecording) createAndStartEngine(); }, 100);
-    };
-
-    try {
-        recognition.start();
-        updateEngineUI();
-        document.getElementById('micBanner').classList.remove('visible');
-    } catch (e) {
-        if (isRecording) setTimeout(() => { if (isRecording) createAndStartEngine(); }, 500);
+        finalText += best.transcript;
+      } else {
+        interim += event.results[i][0].transcript;
+      }
     }
+    interimText = interim;
+
+    if (finalText.trim()) {
+      const lang      = detectLanguage(finalText);
+      const needsTx   = lang === 'TE' || lang === 'MIX';
+      const isAction  = ACTION_REGEX.test(finalText);
+      const isDecision = DECISION_REGEX.test(finalText);
+      const segIdx    = transcriptSegments.length;
+
+      transcriptSegments.push({
+        id: Date.now(), lang,
+        original:    finalText.trim(),
+        translated:  needsTx ? null : finalText.trim(),
+        translating: needsTx,
+        timestamp:   formatTime(seconds),
+        speaker:     currentSpeakerIdx,
+        isAction, isDecision
+      });
+
+      updateDetectedLangUI(lang);
+      interimText = '';
+      autoSwitchEngine(lang);
+      renderTranscript(); autoSave();
+
+      if (needsTx) {
+        translateToEnglish(finalText.trim()).then(tx => {
+          if (transcriptSegments[segIdx]) {
+            transcriptSegments[segIdx].translated  = tx;
+            transcriptSegments[segIdx].translating = false;
+            // re-detect action/decision from English translation too
+            transcriptSegments[segIdx].isAction   = ACTION_REGEX.test(tx) || isAction;
+            transcriptSegments[segIdx].isDecision  = DECISION_REGEX.test(tx) || isDecision;
+            renderTranscript(); autoSave();
+          }
+        });
+      }
+    } else {
+      renderTranscript();
+    }
+  };
+
+  rec.onerror = (event) => {
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      document.getElementById('micBanner').classList.add('visible');
+      stopRecording(); return;
+    }
+    if (['no-speech','audio-capture','aborted','network'].includes(event.error)) {
+      // 'no-speech' = silence or very quiet — give more time before restarting
+      // so slow/distant speakers have extra window to continue their sentence
+      const delay = event.error === 'no-speech' ? 800 : 400;
+      if (isRecording && !isPaused) setTimeout(() => { if (isRecording && !isPaused) createAndStartEngine(); }, delay);
+    }
+  };
+
+  rec.onend = () => {
+    saveInterimAsSegment();
+    if (isRecording && !isPaused) {
+      setTimeout(() => { if (isRecording && !isPaused) createAndStartEngine(); }, 150);
+    }
+  };
+
+  try {
+    rec.start();
+    updateEngineUI();
+    document.getElementById('micBanner').classList.remove('visible');
+  } catch(e) {
+    if (isRecording && !isPaused) setTimeout(() => { if (isRecording && !isPaused) createAndStartEngine(); }, 600);
+  }
 }
 
 function autoSwitchEngine(lang) {
-    let newLang = currentEngineLang;
-
-    // If we're in Telugu mode but got pure English → switch to en-IN for better accuracy
-    if (currentEngineLang === 'te-IN' && lang === 'EN') newLang = 'en-IN';
-    // If we're in English mode but got Telugu → switch back to te-IN
-    if (currentEngineLang === 'en-IN' && (lang === 'TE' || lang === 'MIX')) newLang = 'te-IN';
-
-    if (newLang !== currentEngineLang) {
-        currentEngineLang = newLang;
-        if (isRecording) { try { recognition.abort(); } catch (e) {} } // onend will restart
+  let desired = currentEngineLang;
+  if (currentEngineLang === 'te-IN' && lang === 'EN') desired = 'en-IN';
+  if (currentEngineLang === 'en-IN' && (lang === 'TE' || lang === 'MIX')) desired = 'te-IN';
+  if (desired !== currentEngineLang) {
+    langStreakCount++;
+    if (langStreakCount >= 2) {
+      langStreakCount = 0;
+      currentEngineLang = desired;
+      if (isRecording && !isPaused && recognition) {
+        try { recognition.stop(); } catch(e) {} // stop() finalizes pending speech
+      }
     }
+  } else { langStreakCount = 0; }
 }
 
 function updateDetectedLangUI(lang) {
-    const el = document.getElementById('detectedLang');
-    if      (lang === 'TE')  el.innerHTML = 'Detected: <span class="te-lbl">Telugu</span>';
-    else if (lang === 'MIX') el.innerHTML = 'Detected: <span class="en-lbl">English</span> + <span class="te-lbl">Telugu</span>';
-    else                      el.innerHTML = 'Detected: <span class="en-lbl">English</span>';
+  const el = document.getElementById('detectedLang');
+  if      (lang === 'TE')  el.innerHTML = 'Detected: <span class="te-lbl">Telugu</span>';
+  else if (lang === 'MIX') el.innerHTML = 'Detected: <span class="en-lbl">English</span> + <span class="te-lbl">Telugu</span>';
+  else                      el.innerHTML = 'Detected: <span class="en-lbl">English</span>';
 }
 
-// ===================== RECORDING =====================
+// ══════════════════════════════════════════
+// 11. RECORDING CONTROLS (F1 Pause/Resume)
+// ══════════════════════════════════════════
 function toggleRecording() { isRecording ? stopRecording() : startRecording(); }
 
 async function startRecording() {
-    // Get mic permission first
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-        document.getElementById('micBanner').classList.remove('visible');
-    } catch (e) {
-        document.getElementById('micBanner').classList.add('visible');
-        return;
-    }
+  try {
+    // Check permission with same constraints we'll use for real recording
+    const s = await navigator.mediaDevices.getUserMedia({
+      audio: { autoGainControl:true, echoCancellation:false, noiseSuppression:false }
+    });
+    s.getTracks().forEach(t => t.stop());
+    document.getElementById('micBanner').classList.remove('visible');
+  } catch {
+    document.getElementById('micBanner').classList.add('visible');
+    return;
+  }
 
-    isRecording       = true;
-    currentEngineLang = startLangPref;   // Use user's chosen start language
+  isRecording = true; isPaused = false;
+  currentEngineLang = startLangPref;
+  langStreakCount = 0;
 
-    createAndStartEngine();
+  await startMicMeter();
+  createAndStartEngine();
+  startTimer();
+  startAutoSaveTimer();
 
-    document.getElementById('recordBtn').classList.add('recording');
-    document.getElementById('statusBadge').className   = 'status-badge recording';
-    document.getElementById('statusBadge').textContent = 'Recording…';
-    document.getElementById('generateBtn').disabled    = false;
-
-    startTimer();
+  document.getElementById('recordBtn').classList.add('recording');
+  document.getElementById('pauseBtn').classList.add('active');
+  setStatus('recording','🔴 Recording…');
+  document.getElementById('generateBtn').disabled = false;
+  document.getElementById('summaryBtn').disabled  = false;
 }
 
 function stopRecording() {
-    isRecording = false;
-    try { if (recognition) recognition.abort(); } catch (e) {}
-    interimText = '';
+  isRecording = false; isPaused = false;
+  if (recognition) {
+    try { recognition.onend = null; recognition.abort(); } catch(e) {}
+    recognition = null;
+  }
+  interimText = '';
+  stopMicMeter();
+  stopTimer();
+  stopAutoSaveTimer();
 
-    document.getElementById('recordBtn').classList.remove('recording');
-    document.getElementById('statusBadge').className   = 'status-badge stopped';
-    document.getElementById('statusBadge').textContent = 'Stopped';
-
-    updateEngineUI();
-    stopTimer();
-    renderTranscript();
+  document.getElementById('recordBtn').classList.remove('recording');
+  document.getElementById('pauseBtn').classList.remove('active');
+  document.getElementById('pauseBtn').textContent = '⏸';
+  setStatus('stopped','⏹ Stopped');
+  updateEngineUI();
+  renderTranscript();
+  autoSave();
 }
 
-// ===================== TIMER =====================
-function startTimer() { timerInterval = setInterval(() => { seconds++; document.getElementById('timer').textContent = formatTime(seconds); }, 1000); }
-function stopTimer()  { clearInterval(timerInterval); }
-function formatTime(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function togglePause() {
+  if (!isRecording) return;
+  isPaused = !isPaused;
+  const btn = document.getElementById('pauseBtn');
 
-// ===================== TRANSCRIPT RENDERING =====================
-function renderTranscript() {
-    const box = document.getElementById('transcriptBox');
-
-    if (!transcriptSegments.length && !interimText) {
-        box.innerHTML = '<span style="color:#555;font-size:0.9rem;">Click the red button and speak in Telugu or English. Telugu will be automatically translated to English.</span>';
-        document.getElementById('wordCount').textContent = '0 words';
-        return;
+  if (isPaused) {
+    // Pause: stop engine + timer
+    if (recognition) {
+      try { recognition.onend = null; recognition.stop(); } catch(e) {}
+      recognition = null;
     }
+    stopTimer();
+    btn.textContent = '▶';
+    setStatus('paused','⏸ Paused');
+    updateEngineUI();
+  } else {
+    // Resume: restart engine + timer
+    btn.textContent = '⏸';
+    setStatus('recording','🔴 Recording…');
+    startTimer();
+    createAndStartEngine();
+  }
+}
 
-    let html = '';
+function setStatus(cls, text) {
+  const el = document.getElementById('statusBadge');
+  el.className   = 'status-badge sb-' + cls;
+  el.textContent = text;
+}
 
-    transcriptSegments.forEach(seg => {
-        const cls = seg.lang === 'TE' ? 'te' : seg.lang === 'MIX' ? 'mix' : 'en';
-        const lbl = seg.lang === 'MIX' ? 'EN+TE' : seg.lang;
+// ══════════════════════════════════════════
+// 12. SPEAKER LABELS (F4)
+// ══════════════════════════════════════════
+function setSpeaker(idx) {
+  currentSpeakerIdx = idx;
+  document.querySelectorAll('.spk-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === idx);
+  });
+}
+function setStartLang(mode) {
+  startLangPref = mode;
+  document.getElementById('btnTE').className = 'lang-mode-btn' + (mode === 'te-IN' ? ' active-te' : '');
+  document.getElementById('btnEN').className = 'lang-mode-btn' + (mode === 'en-IN' ? ' active-en' : '');
+}
 
-        html += `<div class="seg">`;
-        html += `<div class="seg-top">`;
-        html += `<span class="lang-tag ${cls}">${lbl}</span>`;
-        html += `<span class="ts-tag">[${seg.timestamp}]</span>`;
-        html += `<span class="seg-original">${escapeHtml(seg.original)}</span>`;
-        html += `</div>`;
+// ══════════════════════════════════════════
+// 13. TIMER
+// ══════════════════════════════════════════
+function startTimer() {
+  timerInterval = setInterval(() => {
+    seconds++;
+    document.getElementById('timer').textContent = formatTime(seconds);
+  }, 1000);
+}
+function stopTimer()  { clearInterval(timerInterval); }
+function formatTime(s) {
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
 
-        if (seg.lang === 'TE' || seg.lang === 'MIX') {
-            if (seg.translating) {
-                html += `<div class="seg-translating">translating…</div>`;
-            } else if (seg.translated) {
-                html += `<div class="seg-translation">${escapeHtml(seg.translated)}</div>`;
-            }
-        }
+// ══════════════════════════════════════════
+// 14. TRANSCRIPT RENDER (U1 bubbles, F3 edit, F6 highlight, F7 search)
+// ══════════════════════════════════════════
+function renderTranscript() {
+  const box   = document.getElementById('transcriptBox');
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
 
-        html += `</div>`;
+  if (!transcriptSegments.length && !interimText) {
+    box.innerHTML = '<div class="empty-state">Click the red button and speak.<br>Telugu shows with English translation below each bubble.</div>';
+    document.getElementById('segStats').textContent    = '0 words · 0 segments';
+    document.getElementById('searchCount').textContent = '';
+    return;
+  }
+
+  // Filter for search
+  const segs = query
+    ? transcriptSegments.filter(s =>
+        s.original.toLowerCase().includes(query) ||
+        (s.translated || '').toLowerCase().includes(query))
+    : transcriptSegments;
+
+  if (query) {
+    document.getElementById('searchCount').textContent =
+      `${segs.length} / ${transcriptSegments.length} match`;
+  } else {
+    document.getElementById('searchCount').textContent = '';
+  }
+
+  let html = '';
+  segs.forEach(seg => {
+    const side   = seg.lang === 'EN' ? 'side-en' : 'side-te';
+    const ltCls  = seg.lang === 'TE' ? 'lt-te' : seg.lang === 'MIX' ? 'lt-mix' : 'lt-en';
+    const ltLbl  = seg.lang === 'MIX' ? 'EN+TE' : seg.lang;
+    const spkClr = SPEAKER_COLORS[seg.speaker] || SPEAKER_COLORS[0];
+    const spkNm  = SPEAKER_NAMES[seg.speaker]  || 'Speaker 1';
+
+    let bubbleCls = 'bubble ' + side;
+    if (seg.isAction)   bubbleCls += ' is-action';
+    if (seg.isDecision) bubbleCls += ' is-decision';
+
+    // Highlight search term in text
+    const origHl = query ? highlight(escHtml(seg.original), query) : escHtml(seg.original);
+    const txHl   = (seg.translated && query) ? highlight(escHtml(seg.translated), query) : escHtml(seg.translated || '');
+
+    html += `<div class="bubble-wrap ${side}" data-segid="${seg.id}">`;
+
+    // Meta row
+    html += `<div class="bubble-meta">`;
+    html += `<span class="bub-spk" style="color:${spkClr}">${escHtml(spkNm)}</span>`;
+    html += `<span class="lang-tag ${ltCls}">${ltLbl}</span>`;
+    html += `<span class="bub-ts">[${seg.timestamp}]</span>`;
+    if (seg.isAction)   html += `<span class="action-tag">⚡ Action</span>`;
+    if (seg.isDecision) html += `<span class="decision-tag">✅ Decision</span>`;
+    html += `</div>`;
+
+    // Bubble
+    html += `<div class="${bubbleCls}">`;
+    html += `<button class="bub-edit-btn" onclick="editSegment('${seg.id}',this)">✏️ edit</button>`;
+    html += `<div class="bub-original" id="orig-${seg.id}">${origHl}</div>`;
+    if (seg.lang !== 'EN') {
+      if (seg.translating)       html += `<div class="bub-pending" id="tx-${seg.id}">⏳ translating…</div>`;
+      else if (seg.translated)   html += `<div class="bub-translation" id="tx-${seg.id}">${txHl}</div>`;
+    }
+    html += `</div></div>`;  // /bubble /bubble-wrap
+  });
+
+  if (interimText && !query) {
+    html += `<div class="interim-bubble">${escHtml(interimText)}</div>`;
+  }
+
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
+
+  const words = transcriptSegments.map(s=>s.original).join(' ').trim().split(/\s+/).filter(w=>w).length;
+  document.getElementById('segStats').textContent = `${words} words · ${transcriptSegments.length} segments`;
+}
+
+// ── Edit segment (F3) ──
+function editSegment(segId, btn) {
+  const seg = transcriptSegments.find(s => String(s.id) === String(segId));
+  if (!seg) return;
+
+  const origEl = document.getElementById('orig-' + segId);
+  if (!origEl) return;
+
+  // Already editing?
+  if (origEl.querySelector('textarea')) return;
+
+  const currentText = seg.original;
+  origEl.innerHTML = `
+    <textarea class="bub-edit-input" rows="2">${escHtml(currentText)}</textarea>
+    <div class="bub-edit-actions">
+      <button class="bub-save-btn"   onclick="saveEdit('${segId}',this)">Save</button>
+      <button class="bub-cancel-btn" onclick="cancelEdit('${segId}',this)">Cancel</button>
+    </div>`;
+  origEl.querySelector('textarea').focus();
+  btn.style.display = 'none';
+}
+
+function saveEdit(segId, btn) {
+  const seg = transcriptSegments.find(s => String(s.id) === String(segId));
+  if (!seg) return;
+  const wrap   = btn.closest('[data-segid]');
+  const ta     = wrap.querySelector('textarea');
+  const newTxt = ta ? ta.value.trim() : '';
+  if (!newTxt) return;
+
+  seg.original    = newTxt;
+  seg.lang        = detectLanguage(newTxt);
+  seg.isAction    = ACTION_REGEX.test(newTxt);
+  seg.isDecision  = DECISION_REGEX.test(newTxt);
+  seg.translating = seg.lang !== 'EN';
+  seg.translated  = seg.lang === 'EN' ? newTxt : null;
+
+  renderTranscript(); autoSave();
+
+  if (seg.lang !== 'EN') {
+    const idx = transcriptSegments.findIndex(s => String(s.id) === String(segId));
+    translateToEnglish(newTxt).then(tx => {
+      if (transcriptSegments[idx]) {
+        transcriptSegments[idx].translated  = tx;
+        transcriptSegments[idx].translating = false;
+        transcriptSegments[idx].isAction    = ACTION_REGEX.test(tx) || seg.isAction;
+        transcriptSegments[idx].isDecision  = DECISION_REGEX.test(tx) || seg.isDecision;
+        renderTranscript(); autoSave();
+      }
+    });
+  }
+}
+
+function cancelEdit(segId) { renderTranscript(); }
+
+function highlight(html, q) {
+  if (!q) return html;
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return html.replace(re, '<mark class="highlight">$1</mark>');
+}
+function escHtml(t) {
+  if (!t) return '';
+  const d = document.createElement('div'); d.textContent = t; return d.innerHTML;
+}
+
+// ══════════════════════════════════════════
+// 15. MOM GENERATION (F9 Keywords)
+// ══════════════════════════════════════════
+function generateMOM() {
+  if (isRecording) stopRecording();
+  if (!transcriptSegments.length) {
+    showBanner('No transcript — record some audio first.', 'err'); return;
+  }
+
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('momSection').classList.remove('visible');
+
+  const title     = document.getElementById('meetingTitle').value || 'Untitled Meeting';
+  const dateVal   = document.getElementById('meetingDate').value;
+  const dateStr   = dateVal
+    ? new Date(dateVal).toLocaleString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})
+    : new Date().toLocaleString('en-IN');
+  const attendees = document.getElementById('attendees').value  || 'Not specified';
+  const loc       = document.getElementById('location').value   || 'Not specified';
+  const agenda    = document.getElementById('agenda').value     || 'General Discussion';
+
+  setTimeout(() => {
+    const englishText = transcriptSegments
+      .map(s => (s.lang !== 'EN' && s.translated) ? s.translated : s.original)
+      .join('. ');
+
+    const sentences = englishText.split(/[.!?\u0964]+/).map(s=>s.trim()).filter(s=>s.length>3);
+    const discussion = [], actions = [], decisions = [];
+
+    sentences.forEach(s => {
+      if      (ACTION_REGEX.test(s))   actions.push(s);
+      else if (DECISION_REGEX.test(s)) decisions.push(s);
+      else                             discussion.push(s);
     });
 
-    if (interimText) {
-        html += `<div class="interim-line">${escapeHtml(interimText)}</div>`;
+    // Speaker breakdown
+    const speakerMap = {};
+    transcriptSegments.forEach(seg => {
+      const nm = SPEAKER_NAMES[seg.speaker] || 'Speaker 1';
+      if (!speakerMap[nm]) speakerMap[nm] = 0;
+      speakerMap[nm]++;
+    });
+
+    const DIV = '─'.repeat(54);
+    const EQ  = '═'.repeat(54);
+    let mom   = '';
+
+    mom += `${EQ}\n          MINUTES OF MEETING\n${EQ}\n\n`;
+    mom += `Meeting Title  : ${title}\n`;
+    mom += `Date & Time    : ${dateStr}\n`;
+    mom += `Location       : ${loc}\n`;
+    mom += `Attendees      : ${attendees}\n`;
+    mom += `Duration       : ${formatTime(seconds)}\n`;
+    mom += `Prepared By    : ${currentUser} (Voice Auto-generated)\n`;
+    mom += `Languages      : ${getLangSummary()}\n`;
+    mom += `Total Segments : ${transcriptSegments.length}\n\n`;
+
+    mom += `${DIV}\nAGENDA\n${DIV}\n`;
+    agenda.split('\n').forEach((line,i) => { if(line.trim()) mom += `  ${i+1}. ${line.trim()}\n`; });
+    mom += '\n';
+
+    mom += `${DIV}\nDISCUSSION POINTS\n${DIV}\n`;
+    discussion.length
+      ? discussion.forEach((p,i) => { mom += `  ${i+1}. ${p}.\n`; })
+      : (mom += '  (No general discussion points identified)\n');
+    mom += '\n';
+
+    if (actions.length) {
+      mom += `${DIV}\nACTION ITEMS ⚡\n${DIV}\n`;
+      actions.forEach((a,i) => { mom += `  ${i+1}. ${a}.\n`; });
+      mom += '\n';
     }
 
-    box.innerHTML = html;
-    box.scrollTop = box.scrollHeight;
-
-    const allText = transcriptSegments.map(s => s.original).join(' ');
-    const words   = allText.trim().split(/\s+/).filter(w => w).length;
-    document.getElementById('wordCount').textContent = `${words} words`;
-}
-
-function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-
-// ===================== MOM GENERATION =====================
-function generateMOM() {
-    if (isRecording) stopRecording();
-
-    if (!transcriptSegments.length) {
-        const b = document.getElementById('micBanner');
-        b.textContent = 'No transcript yet. Record some audio first.';
-        b.classList.add('visible');
-        setTimeout(() => b.classList.remove('visible'), 3000);
-        return;
+    if (decisions.length) {
+      mom += `${DIV}\nDECISIONS MADE ✅\n${DIV}\n`;
+      decisions.forEach((d,i) => { mom += `  ${i+1}. ${d}.\n`; });
+      mom += '\n';
     }
 
-    document.getElementById('loading').classList.add('visible');
-    document.getElementById('momSection').classList.remove('visible');
+    // Speaker breakdown
+    const spkEntries = Object.entries(speakerMap);
+    if (spkEntries.length > 1) {
+      mom += `${DIV}\nSPEAKER BREAKDOWN\n${DIV}\n`;
+      spkEntries.forEach(([nm,cnt]) => { mom += `  ${nm.padEnd(12)} : ${cnt} segment${cnt>1?'s':''}\n`; });
+      mom += '\n';
+    }
 
-    const title     = document.getElementById('meetingTitle').value || 'Untitled Meeting';
-    const dateVal   = document.getElementById('meetingDate').value;
-    const dateStr   = dateVal
-        ? new Date(dateVal).toLocaleString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
-        : new Date().toLocaleString('en-IN');
-    const attendees = document.getElementById('attendees').value || 'Not specified';
-    const loc       = document.getElementById('location').value  || 'Not specified';
-    const agenda    = document.getElementById('agenda').value    || 'General Discussion';
+    const enS  = transcriptSegments.filter(s=>s.lang==='EN').length;
+    const teS  = transcriptSegments.filter(s=>s.lang==='TE').length;
+    const mixS = transcriptSegments.filter(s=>s.lang==='MIX').length;
+    mom += `${DIV}\nLANGUAGE BREAKDOWN\n${DIV}\n`;
+    mom += `  English segments  : ${enS}\n`;
+    mom += `  Telugu segments   : ${teS}  (translated)\n`;
+    mom += `  Mixed segments    : ${mixS} (translated)\n\n`;
 
-    setTimeout(() => {
-        // Use translated text for English segments, original for pure EN
-        const fullEnglishText = transcriptSegments
-            .map(s => s.translated || s.original)
-            .join('. ');
+    mom += `${DIV}\nFULL TRANSCRIPT\n${DIV}\n`;
+    transcriptSegments.forEach((seg,i) => {
+      const lbl = seg.lang==='MIX'?'EN+TE':seg.lang;
+      const nm  = SPEAKER_NAMES[seg.speaker]||'Speaker 1';
+      mom += `  [${String(i+1).padStart(2,'0')}] [${nm}] [${lbl}] [${seg.timestamp}]\n`;
+      if (seg.lang !== 'EN') {
+        mom += `       Telugu  : ${seg.original}\n`;
+        mom += `       English : ${seg.translated || '(pending)'}\n`;
+      } else {
+        mom += `       English : ${seg.original}\n`;
+      }
+      mom += '\n';
+    });
 
-        const sentences = fullEnglishText
-            .split(/[.!?\u0964]+/)
-            .map(s => s.trim())
-            .filter(s => s.length > 3);
+    mom += `${EQ}\n         END OF MINUTES\n${EQ}\n`;
 
-        const discussion = [], actions = [], decisions = [];
+    generatedMOM = mom;
+    document.getElementById('momOutput').textContent = mom;
 
-        sentences.forEach(s => {
-            const l = s.toLowerCase();
-            const isAction =
-                l.includes('need to')   || l.includes('should')     || l.includes('will do') ||
-                l.includes('must')      || l.includes('have to')     || l.includes('action') ||
-                l.includes('task')      || l.includes('assign')      || l.includes('deadline') ||
-                l.includes('complete by') || l.includes('responsible') ||
-                l.includes('follow up') || l.includes('next step');
+    // Keyword extraction (F9)
+    buildKeywords(englishText);
 
-            const isDecision =
-                l.includes('decided')   || l.includes('agreed')   || l.includes('approved') ||
-                l.includes('finalized') || l.includes('confirmed') || l.includes('conclusion') ||
-                l.includes('will go with') || l.includes('selected');
+    document.getElementById('loading').classList.remove('visible');
+    document.getElementById('momSection').classList.add('visible');
+    document.getElementById('printBtn').disabled = false;
+    document.getElementById('momSection').scrollIntoView({ behavior:'smooth' });
 
-            if (isAction) actions.push(s);
-            else if (isDecision) decisions.push(s);
-            else discussion.push(s);
-        });
-
-        const DIV = '─'.repeat(50);
-        const EQ  = '='.repeat(50);
-        let mom   = '';
-
-        mom += `${EQ}\n        MINUTES OF MEETING (ENGLISH)\n${EQ}\n\n`;
-        mom += `Meeting Title  : ${title}\n`;
-        mom += `Date & Time    : ${dateStr}\n`;
-        mom += `Location       : ${loc}\n`;
-        mom += `Attendees      : ${attendees}\n`;
-        mom += `Duration       : ${formatTime(seconds)}\n`;
-        mom += `Prepared By    : ${currentUser} (Auto-generated)\n`;
-        mom += `Languages Used : ${getLangSummary()}\n\n`;
-
-        mom += `${DIV}\nAGENDA\n${DIV}\n`;
-        agenda.split('\n').forEach((line, i) => { if (line.trim()) mom += `  ${i+1}. ${line.trim()}\n`; });
-        mom += '\n';
-
-        mom += `${DIV}\nDISCUSSION POINTS\n${DIV}\n`;
-        if (discussion.length) discussion.forEach((p, i) => { mom += `  ${i+1}. ${p}.\n`; });
-        else mom += '  (No general discussion points identified)\n';
-        mom += '\n';
-
-        if (actions.length) {
-            mom += `${DIV}\nACTION ITEMS\n${DIV}\n`;
-            actions.forEach((a, i) => { mom += `  ${i+1}. ${a}.\n`; });
-            mom += '\n';
-        }
-
-        if (decisions.length) {
-            mom += `${DIV}\nDECISIONS MADE\n${DIV}\n`;
-            decisions.forEach((d, i) => { mom += `  ${i+1}. ${d}.\n`; });
-            mom += '\n';
-        }
-
-        const enS  = transcriptSegments.filter(s => s.lang === 'EN').length;
-        const teS  = transcriptSegments.filter(s => s.lang === 'TE').length;
-        const mixS = transcriptSegments.filter(s => s.lang === 'MIX').length;
-
-        mom += `${DIV}\nLANGUAGE BREAKDOWN\n${DIV}\n`;
-        mom += `  English segments        : ${enS}\n`;
-        mom += `  Telugu segments         : ${teS} (translated to English)\n`;
-        mom += `  Mixed (EN+TE) segments  : ${mixS} (translated to English)\n`;
-        mom += `  Total segments          : ${transcriptSegments.length}\n\n`;
-
-        mom += `${DIV}\nFULL TRANSCRIPT (with translations)\n${DIV}\n`;
-        transcriptSegments.forEach(seg => {
-            const lbl = seg.lang === 'MIX' ? 'EN+TE' : seg.lang;
-            mom += `  [${lbl}][${seg.timestamp}]\n`;
-            mom += `    Telugu : ${seg.original}\n`;
-            if (seg.lang !== 'EN' && seg.translated) {
-                mom += `    English: ${seg.translated}\n`;
-            }
-            mom += '\n';
-        });
-
-        mom += `${EQ}\n        END OF MINUTES\n${EQ}\n`;
-
-        generatedMOM = mom;
-        document.getElementById('momOutput').textContent = mom;
-        document.getElementById('loading').classList.remove('visible');
-        document.getElementById('momSection').classList.add('visible');
-        document.getElementById('momSection').scrollIntoView({ behavior: 'smooth' });
-    }, 500);
+    // Save to history
+    saveMOMToHistory(mom, title);
+    // Clear draft since MOM is generated
+    localStorage.removeItem('mom_draft');
+  }, 400);
 }
 
 function getLangSummary() {
-    const l = new Set(transcriptSegments.map(s => s.lang));
-    const p = [];
-    if (l.has('EN') || l.has('MIX')) p.push('English');
-    if (l.has('TE') || l.has('MIX')) p.push('Telugu');
-    return p.length ? p.join(' & ') : 'English';
+  const l = new Set(transcriptSegments.map(s=>s.lang));
+  const p = [];
+  if (l.has('EN')||l.has('MIX')) p.push('English');
+  if (l.has('TE')||l.has('MIX')) p.push('Telugu');
+  return p.join(' & ') || 'English';
 }
 
-// ===================== COPY / DOWNLOAD / CLEAR =====================
+// ── Keyword extraction (F9) ──
+const STOP_WORDS = new Set(['the','a','an','is','was','are','were','be','been','being','have','has','had','do','does','did','will','would','shall','should','may','might','can','could','and','or','but','if','then','that','this','it','its','with','for','on','in','at','to','of','by','from','as','so','not','we','they','he','she','i','you','our','their','his','her','my','your','also','about','into','just','some','which','when','where','who','how','what','said','like','more','all','been','one','out','up','they','these','those','than','over','after','before','between','under','while','during','through']);
+
+function buildKeywords(text) {
+  const words  = text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+  const freq   = {};
+  words.forEach(w => { if (!STOP_WORDS.has(w)) freq[w] = (freq[w]||0)+1; });
+  const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,18);
+
+  if (!sorted.length) return;
+  const container = document.getElementById('keywordTags');
+  container.innerHTML = sorted.map(([w,c]) =>
+    `<span class="kw-tag">${escHtml(w)} <span style="opacity:0.6;font-size:0.65rem">${c}</span></span>`
+  ).join('');
+  document.getElementById('keywordPanel').classList.add('visible');
+}
+
+// ══════════════════════════════════════════
+// 16. PRINT (F8)
+// ══════════════════════════════════════════
+function printMOM() {
+  if (!generatedMOM) return;
+  window.print();
+}
+
+// ══════════════════════════════════════════
+// 17. COPY / DOWNLOAD / CLEAR
+// ══════════════════════════════════════════
 function copyMOM() {
-    navigator.clipboard.writeText(generatedMOM).then(() => {
-        const btn  = event.target.closest('.btn');
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
-        setTimeout(() => { btn.innerHTML = orig; }, 1500);
-    });
+  if (!generatedMOM) return;
+  navigator.clipboard.writeText(generatedMOM).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!';
+    setTimeout(() => { btn.innerHTML = orig; }, 1600);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = generatedMOM;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  });
 }
 
 function downloadMOM() {
-    const title = document.getElementById('meetingTitle').value || 'Meeting';
-    const date  = new Date().toISOString().slice(0, 10);
-    const blob  = new Blob([generatedMOM], { type: 'text/plain;charset=utf-8' });
-    const url   = URL.createObjectURL(blob);
-    const a     = document.createElement('a');
-    a.href = url; a.download = `MOM_${title.replace(/\s+/g,'_')}_${date}.txt`;
-    a.click(); URL.revokeObjectURL(url);
+  if (!generatedMOM) return;
+  const title = document.getElementById('meetingTitle').value || 'Meeting';
+  const date  = new Date().toISOString().slice(0,10);
+  const blob  = new Blob([generatedMOM], {type:'text/plain;charset=utf-8'});
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a');
+  a.href = url; a.download = `MOM_${title.replace(/\s+/g,'_')}_${date}.txt`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function clearAll() {
-    if (isRecording) stopRecording();
-    transcriptSegments = [];
-    interimText = ''; seconds = 0; generatedMOM = '';
+  if (isRecording) stopRecording();
+  transcriptSegments = [];
+  interimText = ''; seconds = 0; generatedMOM = '';
 
-    document.getElementById('timer').textContent             = '00:00';
-    document.getElementById('statusBadge').className         = 'status-badge idle';
-    document.getElementById('statusBadge').textContent       = 'Ready';
-    document.getElementById('detectedLang').innerHTML        = '';
-    document.getElementById('generateBtn').disabled          = true;
-    document.getElementById('momSection').classList.remove('visible');
-    document.getElementById('loading').classList.remove('visible');
-    document.getElementById('micBanner').classList.remove('visible');
-    renderTranscript();
+  document.getElementById('timer').textContent = '00:00';
+  setStatus('idle','Ready');
+  document.getElementById('detectedLang').innerHTML  = '';
+  document.getElementById('generateBtn').disabled    = true;
+  document.getElementById('summaryBtn').disabled     = true;
+  document.getElementById('printBtn').disabled       = true;
+  document.getElementById('momSection').classList.remove('visible');
+  document.getElementById('summarySection').classList.remove('visible');
+  document.getElementById('keywordPanel').classList.remove('visible');
+  document.getElementById('loading').classList.remove('visible');
+  document.getElementById('micBanner').classList.remove('visible');
+  document.getElementById('searchInput').value = '';
+  localStorage.removeItem('mom_draft');
+  renderTranscript();
+}
+
+// ══════════════════════════════════════════
+// 18. QUICK SUMMARY
+// ══════════════════════════════════════════
+let generatedSummaryText = '';
+
+function generateSummary() {
+  if (!transcriptSegments.length) {
+    showBanner('No transcript yet — record some audio first.', 'err');
+    return;
+  }
+
+  // ── Build full English text ──
+  const fullText = transcriptSegments
+    .map(s => (s.lang !== 'EN' && s.translated) ? s.translated : s.original)
+    .join('. ');
+
+  const sentences = fullText
+    .split(/[.!?\u0964]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 5);
+
+  // ── Categorise sentences ──
+  const actions   = [];
+  const decisions = [];
+  const discuss   = [];
+  sentences.forEach(s => {
+    if      (ACTION_REGEX.test(s))   actions.push(s);
+    else if (DECISION_REGEX.test(s)) decisions.push(s);
+    else                             discuss.push(s);
+  });
+
+  // ── Top topics (keyword freq, pick top 7) ──
+  const words = fullText.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+  const freq  = {};
+  words.forEach(w => { if (!STOP_WORDS.has(w)) freq[w] = (freq[w]||0)+1; });
+  const topTopics = Object.entries(freq)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0,7)
+    .map(([w]) => w.charAt(0).toUpperCase() + w.slice(1));
+
+  // ── Speaker breakdown ──
+  const spkMap = {};
+  transcriptSegments.forEach(seg => {
+    const nm = SPEAKER_NAMES[seg.speaker] || 'Speaker 1';
+    spkMap[nm] = (spkMap[nm] || 0) + 1;
+  });
+
+  // ── Stats ──
+  const totalWords   = fullText.trim().split(/\s+/).filter(w=>w).length;
+  const teSegs       = transcriptSegments.filter(s => s.lang === 'TE' || s.lang === 'MIX').length;
+  const enSegs       = transcriptSegments.filter(s => s.lang === 'EN').length;
+  const duration     = formatTime(seconds);
+  const speakerCount = Object.keys(spkMap).length;
+
+  // ── One-sentence overview ──
+  const title    = document.getElementById('meetingTitle').value || 'this meeting';
+  const langNote = teSegs > 0
+    ? ` ${teSegs} Telugu segment${teSegs>1?'s were':' was'} auto-translated to English.`
+    : '';
+  const overview = `<strong>${title}</strong> lasted <strong>${duration}</strong> with <strong>${speakerCount} speaker${speakerCount>1?'s':''}</strong> and generated <strong>${transcriptSegments.length} transcript segment${transcriptSegments.length>1?'s':''}</strong> totalling <strong>${totalWords} words</strong>.${langNote} ${actions.length} action item${actions.length!==1?'s':''} and ${decisions.length} decision${decisions.length!==1?'s':''} were identified.`;
+
+  // ── Render overview ──
+  document.getElementById('summaryOverview').innerHTML = overview;
+
+  // ── Render stats ──
+  document.getElementById('summaryStats').innerHTML = [
+    { val: totalWords,                   lbl: 'Words'    },
+    { val: transcriptSegments.length,    lbl: 'Segments' },
+    { val: actions.length,               lbl: 'Actions'  },
+    { val: decisions.length,             lbl: 'Decisions'},
+    { val: duration,                     lbl: 'Duration' },
+    { val: speakerCount,                 lbl: 'Speakers' },
+  ].map(s => `<div class="sum-stat"><div class="sum-stat-val">${s.val}</div><div class="sum-stat-lbl">${s.lbl}</div></div>`).join('');
+
+  // ── Helper to fill list ──
+  function fillList(elId, items, emptyMsg) {
+    const ul = document.getElementById(elId);
+    if (!items.length) {
+      ul.innerHTML = `<li class="none">${emptyMsg}</li>`; return;
+    }
+    ul.innerHTML = items.slice(0,6)
+      .map(t => `<li>${escHtml(t.length > 90 ? t.slice(0,90)+'…' : t)}</li>`)
+      .join('');
+  }
+
+  fillList('sumTopics',    topTopics,                     'No topics detected');
+  fillList('sumActions',   actions,                       'No action items found');
+  fillList('sumDecisions', decisions,                     'No decisions recorded');
+
+  // Speaker list
+  const spkUl = document.getElementById('sumSpeakers');
+  const spkEntries = Object.entries(spkMap);
+  if (!spkEntries.length) {
+    spkUl.innerHTML = '<li class="none">No speakers labelled</li>';
+  } else {
+    spkUl.innerHTML = spkEntries
+      .sort((a,b) => b[1]-a[1])
+      .map(([nm,cnt]) =>
+        `<li><strong>${escHtml(nm)}</strong> — ${cnt} segment${cnt>1?'s':''}</li>`)
+      .join('');
+  }
+
+  // ── Build plain-text version for copy ──
+  const DIV = '─'.repeat(46);
+  let txt = `✨ QUICK SUMMARY — ${title}\n${DIV}\n\n`;
+  txt += `Duration : ${duration}   |   Words: ${totalWords}   |   Segments: ${transcriptSegments.length}\n`;
+  txt += `Speakers : ${speakerCount}          |   Actions: ${actions.length}    |   Decisions: ${decisions.length}\n\n`;
+  txt += `KEY TOPICS\n${topTopics.join(', ')}\n\n`;
+  if (actions.length)   { txt += `ACTION ITEMS\n`; actions.slice(0,6).forEach((a,i)=>{ txt+=`  ${i+1}. ${a}\n`; }); txt+='\n'; }
+  if (decisions.length) { txt += `DECISIONS\n`;    decisions.slice(0,6).forEach((d,i)=>{ txt+=`  ${i+1}. ${d}\n`; }); txt+='\n'; }
+  txt += `SPEAKERS\n`;
+  spkEntries.forEach(([nm,cnt]) => { txt += `  ${nm}: ${cnt} segment${cnt>1?'s':''}\n`; });
+  generatedSummaryText = txt;
+
+  // ── Show section ──
+  const sec = document.getElementById('summarySection');
+  sec.classList.add('visible');
+  sec.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function closeSummary() {
+  document.getElementById('summarySection').classList.remove('visible');
+}
+
+function copySummary() {
+  if (!generatedSummaryText) return;
+  const btn = document.querySelector('.summary-copy-btn');
+  navigator.clipboard.writeText(generatedSummaryText).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 1600);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = generatedSummaryText;
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 1600);
+  });
+}
+
+// ══════════════════════════════════════════
+// 20. UTILITY
+// ══════════════════════════════════════════
+function showBanner(msg, type='info') {
+  const b = document.getElementById(type==='err' ? 'micBanner' : 'infoBanner');
+  b.textContent = msg;
+  b.classList.add('visible');
+  setTimeout(() => b.classList.remove('visible'), 3500);
+}
+function showInfoBanner(msg) {
+  const b = document.getElementById('infoBanner');
+  b.textContent = msg;
+  b.classList.add('visible');
+  setTimeout(() => b.classList.remove('visible'), 2500);
 }
 </script>
 </body>
