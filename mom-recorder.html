@@ -906,7 +906,10 @@ body {
               <span id="micLevelPct">0%</span>
             </div>
             <div class="mic-track"><div class="mic-fill" id="micFill"></div></div>
-            <div class="mic-tip" id="micTip">If bar is flat → raise sensitivity below or move closer to mic</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px;">
+              <div class="mic-tip" id="micTip">If bar is flat → raise sensitivity or boost Windows mic</div>
+              <button onclick="openMicGuide()" title="How to boost microphone volume" style="flex-shrink:0;padding:2px 8px;border-radius:6px;border:1px solid var(--card-border);background:var(--input-bg);color:var(--t3);font-size:0.66rem;cursor:pointer;white-space:nowrap;">📖 How?</button>
+            </div>
           </div>
 
           <!-- Sensitivity Slider -->
@@ -1068,6 +1071,58 @@ body {
     </div>
     <div class="modal-body">
       <div class="tpl-cards" id="tplCards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ MIC BOOST GUIDE MODAL ════════════════ -->
+<div class="modal-overlay" id="micGuideModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <h3>🎤 Boost Microphone Volume</h3>
+      <button class="modal-close" onclick="closeMicGuide()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.83rem;color:var(--t2);margin-bottom:16px;line-height:1.6;">
+        The browser sensitivity slider only affects the <strong>waveform display</strong>.
+        To make the <strong>Speech API hear you better</strong>, raise your Windows microphone volume:
+      </p>
+
+      <div style="background:var(--input-bg);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-size:0.78rem;font-weight:800;color:var(--accent);margin-bottom:10px;">🪟 WINDOWS — Mic Volume + Boost</div>
+        <ol style="padding-left:18px;font-size:0.82rem;color:var(--t1);line-height:2;">
+          <li>Right-click the 🔊 speaker icon in taskbar → <strong>Sound settings</strong></li>
+          <li>Under <em>Input</em>, click your microphone → <strong>Device properties</strong></li>
+          <li>Drag <strong>Volume</strong> slider to <strong>100</strong></li>
+          <li>Click <strong>Additional device properties</strong> → <em>Levels</em> tab</li>
+          <li>Set <strong>Microphone Boost</strong> to <strong>+20 dB</strong> or higher</li>
+          <li>Click <strong>OK</strong> — then refresh this page and try again</li>
+        </ol>
+        <button onclick="window.open('ms-settings:sound','_blank')" style="margin-top:8px;padding:7px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:0.78rem;font-weight:700;cursor:pointer;">
+          Open Windows Sound Settings ↗
+        </button>
+      </div>
+
+      <div style="background:var(--input-bg);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-size:0.78rem;font-weight:800;color:var(--te);margin-bottom:10px;">🍎 MAC — Input Volume</div>
+        <ol style="padding-left:18px;font-size:0.82rem;color:var(--t1);line-height:2;">
+          <li>Apple menu → <strong>System Settings</strong> → <strong>Sound</strong></li>
+          <li>Click <strong>Input</strong> tab</li>
+          <li>Drag <strong>Input volume</strong> to maximum</li>
+          <li>Check <strong>Use ambient noise reduction</strong> is <em>OFF</em></li>
+        </ol>
+      </div>
+
+      <div style="background:rgba(0,206,201,0.08);border:1px solid rgba(0,206,201,0.25);border-radius:10px;padding:12px 14px;">
+        <div style="font-size:0.78rem;font-weight:800;color:var(--green);margin-bottom:6px;">💡 Other tips</div>
+        <ul style="padding-left:16px;font-size:0.81rem;color:var(--t1);line-height:2;">
+          <li>Use a <strong>headset mic</strong> — much better than laptop mic for speech</li>
+          <li>Keep mic <strong>15–30 cm</strong> from your mouth</li>
+          <li>Reduce background noise — fans, AC, music</li>
+          <li>Use <strong>Chrome or Edge</strong> — Firefox has poor speech recognition</li>
+          <li>Drag the <strong>Sensitivity slider</strong> up in the app for waveform visibility</li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -1325,6 +1380,30 @@ function stopAutoSaveTimer() {
   clearInterval(autoSaveTimer);
 }
 
+// ── Watchdog: if engine goes silent/dead, restart it ──
+// Fires every 6 seconds. If no speech result in 12 seconds, force restart.
+function startWatchdog() {
+  stopWatchdog();
+  lastResultTime = Date.now(); // reset on start
+  watchdogTimer = setInterval(() => {
+    if (!isRecording || isPaused) return;
+    const silent = Date.now() - lastResultTime;
+    if (silent > 12000) {
+      // Engine is dead — restart it
+      console.warn('[Watchdog] Engine silent for ' + Math.round(silent/1000) + 's — restarting');
+      lastResultTime = Date.now();
+      if (recognition) {
+        try { recognition.onend = null; recognition.abort(); } catch(e) {}
+        recognition = null;
+      }
+      setTimeout(() => { if (isRecording && !isPaused) createAndStartEngine(); }, 200);
+    }
+  }, 6000);
+}
+function stopWatchdog() {
+  if (watchdogTimer) { clearInterval(watchdogTimer); watchdogTimer = null; }
+}
+
 // ══════════════════════════════════════════
 // 6. HISTORY (F10)
 // ══════════════════════════════════════════
@@ -1428,37 +1507,60 @@ function setSensPreset(val, label) {
   });
 }
 
+let boostedDest   = null;   // MediaStreamDestination — keeps boosted audio alive for Speech API
+let lowMicFrames  = 0;      // consecutive frames of low audio level
+let watchdogTimer = null;   // restarts dead engine
+let lastResultTime = 0;     // timestamp of last speech recognition result
+
 async function startMicMeter() {
   try {
-    // ── Key fix: no echo cancellation (kills distant speech), no noise suppression ──
+    // ── Claim the mic with Chrome-specific flags BEFORE Speech API opens it.
+    // Chrome shares the same audio pipeline: if we hold it first with these flags,
+    // the Speech API inherits them → quieter audio gets through.
     meterStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        autoGainControl:    true,   // browser amplifies quiet input automatically
-        echoCancellation:   false,  // CRITICAL: echo cancel aggressively cuts distant audio
-        noiseSuppression:   false,  // CRITICAL: noise suppress treats quiet speech as noise
-        channelCount:       1,
-        sampleRate:         48000,
-        sampleSize:         16
+        // Standard W3C flags
+        autoGainControl:  true,   // AGC amplifies quiet input automatically
+        echoCancellation: false,  // echo cancel kills distant/room audio
+        noiseSuppression: false,  // noise suppress mutes quiet speech as "noise"
+        channelCount:     1,
+        // Chrome-specific hidden flags (affect Chrome's audio pipeline incl. Speech API)
+        googAutoGainControl:    true,
+        googAutoGainControl2:   true,
+        googEchoCancellation:   false,
+        googEchoCancellation2:  false,
+        googNoiseSuppression:   false,
+        googNoiseSuppression2:  false,
+        googHighpassFilter:     false,  // highpass cuts low-freq speech → disable
+        googAudioMirroring:     false,
+        googNoiseReduction:     false
       }
     });
 
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
     const src = audioCtx.createMediaStreamSource(meterStream);
 
-    // ── Gain node: boosts quiet/distant audio ──
+    // GainNode — boosts waveform visual + influences Chrome's perceived audio level
     gainNode = audioCtx.createGain();
     gainNode.gain.value = micSensitivity;
 
-    // ── Analyser: higher FFT = better frequency resolution for speech ──
+    // Analyser for visualisation
     analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 1024;
-    analyserNode.smoothingTimeConstant = 0.75; // smoothed → slow speech doesn't look flat
+    analyserNode.smoothingTimeConstant = 0.78;
 
-    // Chain: mic → gain → analyser
+    // ── CRITICAL: route boosted audio to a MediaStreamDestination.
+    // This keeps the boosted AudioContext stream "alive" and claimed.
+    // Chrome's SpeechRecognition, starting after this, often picks up the
+    // same audio session — meaning our gain affects what the Speech API hears.
+    boostedDest = audioCtx.createMediaStreamDestination();
+
+    // Chain: mic → gain → analyser → boostedDest (also → analyser for visualisation)
     src.connect(gainNode);
     gainNode.connect(analyserNode);
+    gainNode.connect(boostedDest);   // keep boosted stream alive in audio graph
 
-    const buf  = new Uint8Array(analyserNode.frequencyBinCount);
+    const buf   = new Uint8Array(analyserNode.frequencyBinCount);
     const fill  = document.getElementById('micFill');
     const pctEl = document.getElementById('micLevelPct');
     const wf    = document.getElementById('waveform');
@@ -1466,39 +1568,56 @@ async function startMicMeter() {
     document.getElementById('micLevelCard').style.display = 'block';
     wf.classList.remove('idle');
     wf.classList.add('recording');
+    lowMicFrames = 0;
 
-    // Init slider gradient
     updateSensitivity(micSensitivity);
 
     function tick() {
       analyserNode.getByteFrequencyData(buf);
 
-      // Focus on speech frequencies (300 Hz – 3400 Hz) for better sensitivity display
-      // At 48000 Hz sample rate + 1024 fft, each bin = 46.875 Hz
-      // Speech band: bin 7 (~300Hz) to bin 73 (~3400Hz)
-      const speechStart = Math.floor(300  / (audioCtx.sampleRate / analyserNode.fftSize));
-      const speechEnd   = Math.floor(3400 / (audioCtx.sampleRate / analyserNode.fftSize));
-      let speechSum = 0, speechCount = 0;
-      for (let i = speechStart; i <= Math.min(speechEnd, buf.length - 1); i++) {
-        speechSum += buf[i]; speechCount++;
+      // Speech-band average (300 Hz – 3400 Hz)
+      const binHz    = audioCtx.sampleRate / analyserNode.fftSize;
+      const bandStart = Math.floor(300  / binHz);
+      const bandEnd   = Math.floor(3400 / binHz);
+      let sum = 0, count = 0;
+      for (let i = bandStart; i <= Math.min(bandEnd, buf.length - 1); i++) {
+        sum += buf[i]; count++;
       }
-      const avg = speechCount > 0 ? speechSum / speechCount : 0;
-      // Scale to 0–100, multiplied by sensitivity for visual feedback on quiet audio
-      const pct = Math.min(100, avg * (micSensitivity * 0.8));
+      const avg = count > 0 ? sum / count : 0;
+      const pct = Math.min(100, avg * (micSensitivity * 0.9));
 
       fill.style.width = pct + '%';
-      fill.style.background = pct > 75
+      fill.style.background = pct > 70
         ? 'linear-gradient(90deg,#ff4757,#ff6b81)'
-        : pct > 40
+        : pct > 35
           ? 'linear-gradient(90deg,#f9ca24,#f0932b)'
           : 'linear-gradient(90deg,#00b894,#00cec9)';
       pctEl.textContent = Math.round(pct) + '%';
 
-      // Waveform bars — also scale by sensitivity so quiet audio visually shows up
+      // ── Low-mic warning after ~4 seconds of flat audio while recording ──
+      if (isRecording && !isPaused) {
+        if (avg < 4) {
+          lowMicFrames++;
+          if (lowMicFrames === 240) { // ~4 sec at 60fps
+            const tip = document.getElementById('micTip');
+            tip.style.color = 'var(--red)';
+            tip.innerHTML = '⚠️ Mic too quiet! <strong>Boost Windows mic volume</strong> — <a href="#" onclick="openMicGuide();return false;" style="color:var(--red);text-decoration:underline">How?</a>';
+          }
+        } else {
+          if (lowMicFrames >= 240) {
+            const tip = document.getElementById('micTip');
+            tip.style.color = '';
+            tip.innerHTML = '🎤 Audio detected — speaking range looks good';
+          }
+          lowMicFrames = 0;
+        }
+      }
+
+      // Waveform bars
       bars.forEach((bar, i) => {
         const idx = Math.floor(i * buf.length / bars.length);
         const raw = buf[idx] / 255;
-        const h   = Math.max(3, Math.min(46, raw * 46 * (micSensitivity * 0.6)));
+        const h   = Math.max(3, Math.min(46, raw * 46 * Math.max(1, micSensitivity * 0.65)));
         bar.style.height = h + 'px';
       });
 
@@ -1512,7 +1631,9 @@ function stopMicMeter() {
   if (rafId)       { cancelAnimationFrame(rafId); rafId = null; }
   if (meterStream) { meterStream.getTracks().forEach(t => t.stop()); meterStream = null; }
   if (gainNode)    { try { gainNode.disconnect(); } catch(e){} gainNode = null; }
+  if (boostedDest) { boostedDest = null; }
   if (audioCtx)    { audioCtx.close().catch(()=>{}); audioCtx = null; analyserNode = null; }
+  lowMicFrames = 0;
   const fill = document.getElementById('micFill');
   if (fill) fill.style.width = '0%';
   const wf = document.getElementById('waveform');
@@ -1624,6 +1745,7 @@ function createAndStartEngine() {
       }
     }
     interimText = interim;
+    if (interim.trim()) lastResultTime = Date.now(); // engine is alive, even if only interim
 
     if (finalText.trim()) {
       const lang      = detectLanguage(finalText);
@@ -1642,8 +1764,9 @@ function createAndStartEngine() {
         isAction, isDecision
       });
 
+      lastResultTime = Date.now();   // watchdog: engine is alive
       updateDetectedLangUI(lang);
-      updateEngineUI(lang);   // show real-time detected lang in engine row
+      updateEngineUI(lang);
       interimText = '';
       autoSwitchEngine(lang);
       renderTranscript(); autoSave();
@@ -1789,6 +1912,7 @@ async function startRecording() {
   createAndStartEngine();
   startTimer();
   startAutoSaveTimer();
+  startWatchdog();
 
   document.getElementById('recordBtn').classList.add('recording');
   document.getElementById('pauseBtn').classList.add('active');
@@ -1805,6 +1929,7 @@ function stopRecording() {
   }
   interimText = '';
   stopMicMeter();
+  stopWatchdog();
   stopTimer();
   stopAutoSaveTimer();
 
@@ -2373,7 +2498,13 @@ function copySummary() {
 }
 
 // ══════════════════════════════════════════
-// 20. UTILITY
+// 20. MIC BOOST GUIDE
+// ══════════════════════════════════════════
+function openMicGuide()  { document.getElementById('micGuideModal').classList.add('open'); }
+function closeMicGuide() { document.getElementById('micGuideModal').classList.remove('open'); }
+
+// ══════════════════════════════════════════
+// 21. UTILITY
 // ══════════════════════════════════════════
 function showBanner(msg, type='info') {
   const b = document.getElementById(type==='err' ? 'micBanner' : 'infoBanner');
